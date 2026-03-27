@@ -1,0 +1,21 @@
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\bin\Debug\TubesKPL.exe.config
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\bin\Debug\TubesKPL.exe
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\bin\Debug\TubesKPL.pdb
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.csproj.AssemblyReference.cache
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.Form1.resources
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.Properties.Resources.resources
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.csproj.GenerateResource.cache
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.csproj.CoreCompileInputs.cache
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.exe
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.pdb
+D:\Tugas Kuliah\Semester 4\KPL\Coding\TUBES\TubesKPL\obj\Debug\TubesKPL.exe.config
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\bin\Debug\TubesKPL.exe.config
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\bin\Debug\TubesKPL.exe
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\bin\Debug\TubesKPL.pdb
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.csproj.AssemblyReference.cache
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.Form1.resources
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.Properties.Resources.resources
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.csproj.GenerateResource.cache
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.csproj.CoreCompileInputs.cache
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.exe
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.pdb

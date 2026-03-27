@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace TubesKPL
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        List<Obat> daftarObat = new List<Obat>()
+        {
+            new Obat("Paracetamol", 21,5000 ),
+            new Obat( "Ibuprofen", 17, 7000 ),
+            new Obat("Sanmol", 12, 3000 ),
+            new Obat("HRIG", 10,  20000 ),
+            new Obat("Influenza", 15, 2000),
+            new Obat("Jane Doe", 50, 500000)
+        };
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            tblObat.DataSource = daftarObat;
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string inputan = textBox1.Text.ToLower();
+            if(inputan == "")
+            {
+                MessageBox.Show("Masukan Nama Obat Dulu");
+                return;
+            }
+            List<Obat> hasil = new List<Obat>();
+            
+            for(int i = 0; i < daftarObat.Count; i++)
+            {
+                if (daftarObat[i].nama.ToLower().Contains(inputan))
+                {
+                    hasil.Add(daftarObat[i]);
+                }
+            }
+            if(hasil.Count > 0)
+            {
+                tblObat.DataSource= hasil;
+            }
+            else
+            {
+                MessageBox.Show("Obat tidak ada");
+            }
+        }
+    }
+    public class Obat
+    {
+        public string nama { get; set; }
+        public int stok { get; set; }
+        public decimal harga { get; set; }
+
+        public Obat(string nama, int stok, decimal harga)
+        {
+            this.nama = nama;
+            this.stok = stok;
+            this.harga = harga;
+        }
+    }
+}
