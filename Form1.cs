@@ -72,7 +72,7 @@ namespace TubesKPL
             {
                 for (int i = 0; i < tblObat.Rows.Count; i++)
                 {
-                    string status = tblObat.Rows[i].Cells[4].Value.ToString();
+                    string status = tblObat.Rows[i].Cells[4].Value?.ToString();
                     DataGridViewRow row = tblObat.Rows[i];
 
                     switch (status)

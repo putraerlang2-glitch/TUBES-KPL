@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|d:\\tugas kuliah\\semester 4\\kpl\\coding\\tubes\\tubeskpl\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|d:\\tugas kuliah\\semester 4\\kpl\\coding\\tubes\\tubeskpl\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,11 +22,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-28T00:49:43.253Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -32,14 +49,14 @@
               "RelativeDocumentMoniker": "Form1.cs",
               "ToolTip": "D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\Form1.cs",
               "RelativeToolTip": "Form1.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAvwC4AAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAADgAAAAAAAAAAAArwEkAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-25T07:24:06.227Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Form1.cs [Design]",
               "DocumentMoniker": "D:\\Tugas Kuliah\\Semester 4\\KPL\\Coding\\TUBES\\TubesKPL\\Form1.cs",
               "RelativeDocumentMoniker": "Form1.cs",
