@@ -168,15 +168,47 @@ namespace TubesKPL
             // kalau user klik simpan (OK)
             if (formTambah.ShowDialog() == DialogResult.OK)
             {
-                // ambil data obat dari form tambah
                 Obat obatBaru = formTambah.obatBaru;
 
-                // tambahkan ke list
                 daftarObat.Add(obatBaru);
 
-                // refresh tampilan
                 TampilkanData(daftarObat);
                 TampilkanStatistik();
+            }
+        }
+
+        private void btnHapus_Click(object sender, EventArgs e)
+        {
+            if (tblObat.CurrentCell != null && tblObat.Rows.Count > 0)
+            {
+                int selectedIndex = tblObat.CurrentCell.RowIndex;
+
+                string namaObat = tblObat.Rows[selectedIndex].Cells[0].Value?.ToString();
+
+                DialogResult dialogResult = MessageBox.Show(
+                    $"Apakah kamu yakin ingin menghapus obat '{namaObat}'?",
+                    "Konfirmasi Hapus",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (dialogResult == DialogResult.Yes)
+                {
+                    Obat obatDihapus = daftarObat.FirstOrDefault(o => o.nama == namaObat);
+
+                    if (obatDihapus != null)
+                    {
+                        daftarObat.Remove(obatDihapus);
+
+                        TampilkanData(daftarObat);
+                        TampilkanStatistik();
+
+                        MessageBox.Show("Data obat berhasil dihapus!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Silakan pilih data obat di tabel terlebih dahulu yang ingin dihapus.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }
