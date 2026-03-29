@@ -40,13 +40,11 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
-            // Update status semua obat
             foreach (var obat in data)
             {
                 obat.UpdateStatus();
             }
 
-            // Buat DataTable untuk menampilkan data
             DataTable dt = new DataTable();
             dt.Columns.Add("Nama Obat");
             dt.Columns.Add("Stok");
@@ -62,7 +60,6 @@ namespace TubesKPL
 
             tblObat.DataSource = dt;
 
-            // Terapkan warna berdasarkan status
             TerapkanWarnaStatus();
         }
 
@@ -78,13 +75,13 @@ namespace TubesKPL
                     switch (status)
                     {
                         case "Expired":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); // Merah muda
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); 
                             break;
                         case "LowStock":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); // Kuning muda
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); 
                             break;
                         case "Available":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); // Hijau muda
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); 
                             break;
                     }
                 }
@@ -96,7 +93,7 @@ namespace TubesKPL
             List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
             List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
 
-            // Notifikasi obat expired
+
             if (obatExpired.Count > 0)
             {
                 string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
@@ -107,7 +104,6 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            // Notifikasi obat low stock
             if (obatLowStock.Count > 0)
             {
                 string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
@@ -118,7 +114,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            // Tampilkan statistik
+
             TampilkanStatistik();
         }
 
@@ -162,6 +158,25 @@ namespace TubesKPL
             {
                 MessageBox.Show("Obat tidak ada");
                 TampilkanData(daftarObat);
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            FormTambahObat formTambah = new FormTambahObat();
+
+            // kalau user klik simpan (OK)
+            if (formTambah.ShowDialog() == DialogResult.OK)
+            {
+                // ambil data obat dari form tambah
+                Obat obatBaru = formTambah.obatBaru;
+
+                // tambahkan ke list
+                daftarObat.Add(obatBaru);
+
+                // refresh tampilan
+                TampilkanData(daftarObat);
+                TampilkanStatistik();
             }
         }
     }
