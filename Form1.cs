@@ -4,24 +4,13 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TubesKPL
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
+        // Data dummy awal
         List<Obat> daftarObat = new List<Obat>()
         {
             new Obat("Paracetamol", 21, 5000, new DateTime(2025, 6, 15)),
@@ -32,12 +21,18 @@ namespace TubesKPL
             new Obat("Jane Doe", 50, 500000, new DateTime(2026, 1, 1))
         };
 
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             TampilkanData(daftarObat);
             TampilkanNotifikasi();
         }
 
+        // Method utama untuk me-refresh DataGridView
         private void TampilkanData(List<Obat> data)
         {
             foreach (var obat in data)
@@ -54,124 +49,94 @@ namespace TubesKPL
 
             foreach (var obat in data)
             {
-                dt.Rows.Add(obat.nama, obat.stok, obat.harga.ToString("C"), 
+                dt.Rows.Add(obat.nama, obat.stok, obat.harga.ToString("C"),
                     obat.expiredDate.ToString("dd/MM/yyyy"), obat.status.ToString());
             }
 
             tblObat.DataSource = dt;
-
             TerapkanWarnaStatus();
+        }
+
+        // LOGIKA BARU UNTUK UPDATE
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (tblObat.CurrentRow == null)
+            {
+                MessageBox.Show("Klik dulu baris obat yang mau diubah di tabel!");
+                return;
+            }
+
+            int selectedIndex = tblObat.CurrentRow.Index;
+
+            // Validasi index agar tidak error jika list difilter/kosong
+            if (selectedIndex < 0 || selectedIndex >= daftarObat.Count)
+            {
+                MessageBox.Show("Baris tidak valid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Ambil objek Obat yang sesuai dari daftar berdasarkan baris yang diklik
+            Obat selectedObat = daftarObat[selectedIndex];
+
+            // Buka Form2 dan kirim referensi objek (bukan string lagi)
+            Form2 f2 = new Form2(selectedObat);
+
+            if (f2.ShowDialog() == DialogResult.OK)
+            {
+                // Karena objek dikirim sebagai referensi, perubahan di Form2 
+                // otomatis tersimpan di list. Kita tinggal refresh UI.
+                TampilkanData(daftarObat);
+                TampilkanStatistik();
+            }
         }
 
         private void TerapkanWarnaStatus()
         {
-            if (tblObat.DataSource is DataTable dt)
+            for (int i = 0; i < tblObat.Rows.Count; i++)
             {
-                for (int i = 0; i < tblObat.Rows.Count; i++)
-                {
-                    string status = tblObat.Rows[i].Cells[4].Value?.ToString();
-                    DataGridViewRow row = tblObat.Rows[i];
+                string status = tblObat.Rows[i].Cells[4].Value?.ToString();
+                DataGridViewRow row = tblObat.Rows[i];
 
-                    switch (status)
-                    {
-                        case "Expired":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); 
-                            break;
-                        case "LowStock":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); 
-                            break;
-                        case "Available":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); 
-                            break;
-                    }
-                }
+                if (status == "Expired") row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200);
+                else if (status == "LowStock") row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200);
+                else if (status == "Available") row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200);
             }
         }
 
         private void TampilkanNotifikasi()
         {
-            List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
-            List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
-
-
+            var obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
             if (obatExpired.Count > 0)
             {
-                string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
-                foreach (var obat in obatExpired)
-                {
-                    pesan += $"- {obat.nama} (Expired: {obat.expiredDate:dd/MM/yyyy})\n";
-                }
+                string pesan = "⚠️ PERINGATAN: Obat expired:\n" + string.Join("\n", obatExpired.Select(o => $"- {o.nama}"));
                 MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-
-            if (obatLowStock.Count > 0)
-            {
-                string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
-                foreach (var obat in obatLowStock)
-                {
-                    pesan += $"- {obat.nama} (Stok: {obat.stok})\n";
-                }
-                MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-
             TampilkanStatistik();
         }
 
         private void TampilkanStatistik()
         {
-            int jumlahAvailable = daftarObat.Count(o => o.status == StatusObat.Available);
-            int jumlahLowStock = daftarObat.Count(o => o.status == StatusObat.LowStock);
-            int jumlahExpired = daftarObat.Count(o => o.status == StatusObat.Expired);
-
-            this.Text = $"Form1 - Available: {jumlahAvailable} | Low Stock: {jumlahLowStock} | Expired: {jumlahExpired}";
+            int available = daftarObat.Count(o => o.status == StatusObat.Available);
+            int low = daftarObat.Count(o => o.status == StatusObat.LowStock);
+            int expired = daftarObat.Count(o => o.status == StatusObat.Expired);
+            this.Text = $"Apotek - Avail: {available} | Low: {low} | Expired: {expired}";
         }
 
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e) // Tombol Cari
         {
             string inputan = textBox1.Text.ToLower();
-            if(inputan == "")
-            {
-                MessageBox.Show("Masukan Nama Obat Dulu");
-                return;
-            }
-            List<Obat> hasil = new List<Obat>();
+            var hasil = daftarObat.Where(o => o.nama.ToLower().Contains(inputan)).ToList();
 
-            for(int i = 0; i < daftarObat.Count; i++)
-            {
-                if (daftarObat[i].nama.ToLower().Contains(inputan))
-                {
-                    hasil.Add(daftarObat[i]);
-                }
-            }
-            if(hasil.Count > 0)
-            {
-                TampilkanData(hasil);
-            }
-            else
-            {
-                MessageBox.Show("Obat tidak ada");
-                TampilkanData(daftarObat);
-            }
+            if (hasil.Count > 0) TampilkanData(hasil);
+            else MessageBox.Show("Obat tidak ditemukan");
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e) // Tombol Tambah
         {
             FormTambahObat formTambah = new FormTambahObat();
-
-            // kalau user klik simpan (OK)
             if (formTambah.ShowDialog() == DialogResult.OK)
             {
-                Obat obatBaru = formTambah.obatBaru;
-
-                daftarObat.Add(obatBaru);
-
+                daftarObat.Add(formTambah.obatBaru);
                 TampilkanData(daftarObat);
                 TampilkanStatistik();
             }
@@ -179,45 +144,24 @@ namespace TubesKPL
 
         private void btnHapus_Click(object sender, EventArgs e)
         {
-            if (tblObat.CurrentCell != null && tblObat.Rows.Count > 0)
+            if (tblObat.CurrentRow != null)
             {
-                int selectedIndex = tblObat.CurrentCell.RowIndex;
-
-                string namaObat = tblObat.Rows[selectedIndex].Cells[0].Value?.ToString();
-
-                DialogResult dialogResult = MessageBox.Show(
-                    $"Apakah kamu yakin ingin menghapus obat '{namaObat}'?",
-                    "Konfirmasi Hapus",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
-
-                if (dialogResult == DialogResult.Yes)
+                string nama = tblObat.CurrentRow.Cells[0].Value.ToString();
+                if (MessageBox.Show($"Hapus {nama}?", "Konfirmasi", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    Obat obatDihapus = daftarObat.FirstOrDefault(o => o.nama == namaObat);
-
-                    if (obatDihapus != null)
-                    {
-                        daftarObat.Remove(obatDihapus);
-
-                        TampilkanData(daftarObat);
-                        TampilkanStatistik();
-
-                        MessageBox.Show("Data obat berhasil dihapus!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
+                    daftarObat.RemoveAll(o => o.nama == nama);
+                    TampilkanData(daftarObat);
+                    TampilkanStatistik();
                 }
             }
-            else
-            {
-                MessageBox.Show("Silakan pilih data obat di tabel terlebih dahulu yang ingin dihapus.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
         }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
+        private void textBox1_TextChanged(object sender, EventArgs e) { }
     }
-    public enum StatusObat
-    {
-        Available,
-        LowStock,
-        Expired
-    }
+
+    // Class & Enum (Tetap di bawah atau di file terpisah)
+    public enum StatusObat { Available, LowStock, Expired }
 
     public class Obat
     {
@@ -233,28 +177,14 @@ namespace TubesKPL
             this.stok = stok;
             this.harga = harga;
             this.expiredDate = expiredDate;
-            this.status = HitungStatus();
-        }
-
-        public StatusObat HitungStatus()
-        {
-            if (expiredDate < DateTime.Now)
-            {
-                return StatusObat.Expired;
-            }
-            else if (stok < 10)
-            {
-                return StatusObat.LowStock;
-            }
-            else
-            {
-                return StatusObat.Available;
-            }
+            UpdateStatus();
         }
 
         public void UpdateStatus()
         {
-            status = HitungStatus();
+            if (expiredDate < DateTime.Now) status = StatusObat.Expired;
+            else if (stok < 10) status = StatusObat.LowStock;
+            else status = StatusObat.Available;
         }
     }
 }
