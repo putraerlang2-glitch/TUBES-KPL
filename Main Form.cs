@@ -10,7 +10,7 @@ namespace TubesKPL
 {
     public partial class Form1 : Form
     {
-        // Data dummy awal
+
         List<Obat> daftarObat = new List<Obat>()
         {
             new Obat("Paracetamol", 21, 5000, new DateTime(2025, 6, 15)),
@@ -21,6 +21,12 @@ namespace TubesKPL
             new Obat("Jane Doe", 50, 500000, new DateTime(2026, 1, 1))
         };
 
+        public void RefreshData()
+        {
+            TampilkanData(daftarObat);
+            TampilkanStatistik();
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -30,9 +36,9 @@ namespace TubesKPL
         {
             TampilkanData(daftarObat);
             TampilkanNotifikasi();
+
         }
 
-        // Method utama untuk me-refresh DataGridView
         private void TampilkanData(List<Obat> data)
         {
             foreach (var obat in data)
@@ -57,7 +63,7 @@ namespace TubesKPL
             TerapkanWarnaStatus();
         }
 
-        // LOGIKA BARU UNTUK UPDATE
+       
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (tblObat.CurrentRow == null)
@@ -68,23 +74,22 @@ namespace TubesKPL
 
             int selectedIndex = tblObat.CurrentRow.Index;
 
-            // Validasi index agar tidak error jika list difilter/kosong
+            
             if (selectedIndex < 0 || selectedIndex >= daftarObat.Count)
             {
                 MessageBox.Show("Baris tidak valid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            // Ambil objek Obat yang sesuai dari daftar berdasarkan baris yang diklik
+           
             Obat selectedObat = daftarObat[selectedIndex];
 
-            // Buka Form2 dan kirim referensi objek (bukan string lagi)
+            
             Form2 f2 = new Form2(selectedObat);
 
             if (f2.ShowDialog() == DialogResult.OK)
             {
-                // Karena objek dikirim sebagai referensi, perubahan di Form2 
-                // otomatis tersimpan di list. Kita tinggal refresh UI.
+                
                 TampilkanData(daftarObat);
                 TampilkanStatistik();
             }
@@ -122,7 +127,7 @@ namespace TubesKPL
             this.Text = $"Apotek - Avail: {available} | Low: {low} | Expired: {expired}";
         }
 
-        private void button1_Click(object sender, EventArgs e) // Tombol Cari
+        private void button1_Click(object sender, EventArgs e) 
         {
             string inputan = textBox1.Text.ToLower();
             var hasil = daftarObat.Where(o => o.nama.ToLower().Contains(inputan)).ToList();
@@ -131,7 +136,7 @@ namespace TubesKPL
             else MessageBox.Show("Obat tidak ditemukan");
         }
 
-        private void button2_Click(object sender, EventArgs e) // Tombol Tambah
+        private void button2_Click(object sender, EventArgs e) 
         {
             FormTambahObat formTambah = new FormTambahObat();
             if (formTambah.ShowDialog() == DialogResult.OK)
@@ -158,9 +163,15 @@ namespace TubesKPL
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
         private void textBox1_TextChanged(object sender, EventArgs e) { }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            FormTransaksi ft = new FormTransaksi(daftarObat, this);
+            ft.Show();
+        }
     }
 
-    // Class & Enum (Tetap di bawah atau di file terpisah)
     public enum StatusObat { Available, LowStock, Expired }
 
     public class Obat
