@@ -35,6 +35,7 @@
             this.btnHapus = new System.Windows.Forms.Button();
             this.btnUpdate = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tblObat)).BeginInit();
             this.SuspendLayout();
             // 
@@ -88,7 +89,7 @@
             // 
             this.btnHapus.BackColor = System.Drawing.Color.LightCoral;
             this.btnHapus.Location = new System.Drawing.Point(643, 286);
-            this.btnHapus.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnHapus.Margin = new System.Windows.Forms.Padding(4);
             this.btnHapus.Name = "btnHapus";
             this.btnHapus.Size = new System.Drawing.Size(91, 28);
             this.btnHapus.TabIndex = 4;
@@ -98,7 +99,7 @@
             // 
             // btnUpdate
             // 
-            this.btnUpdate.Location = new System.Drawing.Point(421, 289);
+            this.btnUpdate.Location = new System.Drawing.Point(293, 321);
             this.btnUpdate.Name = "btnUpdate";
             this.btnUpdate.Size = new System.Drawing.Size(80, 26);
             this.btnUpdate.TabIndex = 5;
@@ -115,11 +116,22 @@
             this.button4.Text = "button4";
             this.button4.UseVisualStyleBackColor = true;
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(379, 321);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(103, 26);
+            this.button3.TabIndex = 7;
+            this.button3.Text = "Transaksi";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(765, 505);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.btnUpdate);
             this.Controls.Add(this.btnHapus);
@@ -146,6 +158,7 @@
         private System.Windows.Forms.Button btnHapus;
         private System.Windows.Forms.Button btnUpdate;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button3;
     }
 }
 
