@@ -48,6 +48,11 @@ namespace TubesKPL
                 txtUsername.Focus();
             }
         }
+
+        private void txtUsername_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class Akun

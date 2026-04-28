@@ -33,6 +33,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.TBjumlah = new System.Windows.Forms.TextBox();
             this.BtnHitung = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.TabelKeranjang = new System.Windows.Forms.DataGridView();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.TabelKeranjang)).BeginInit();
             this.SuspendLayout();
             // 
             // BoxObat
@@ -73,19 +78,64 @@
             // 
             // BtnHitung
             // 
-            this.BtnHitung.Location = new System.Drawing.Point(184, 120);
+            this.BtnHitung.Location = new System.Drawing.Point(184, 161);
             this.BtnHitung.Name = "BtnHitung";
             this.BtnHitung.Size = new System.Drawing.Size(94, 26);
             this.BtnHitung.TabIndex = 4;
-            this.BtnHitung.Text = "Hitung ";
+            this.BtnHitung.Text = "Checkout";
             this.BtnHitung.UseVisualStyleBackColor = true;
             this.BtnHitung.Click += new System.EventHandler(this.BtnHitung_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(133, 119);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(145, 26);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "Tambah Pesanan";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // TabelKeranjang
+            // 
+            this.TabelKeranjang.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.TabelKeranjang.Location = new System.Drawing.Point(355, 44);
+            this.TabelKeranjang.Name = "TabelKeranjang";
+            this.TabelKeranjang.RowHeadersWidth = 51;
+            this.TabelKeranjang.RowTemplate.Height = 24;
+            this.TabelKeranjang.Size = new System.Drawing.Size(302, 150);
+            this.TabelKeranjang.TabIndex = 6;
+            this.TabelKeranjang.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(352, 25);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(68, 16);
+            this.label3.TabIndex = 7;
+            this.label3.Text = "Keranjang";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(352, 221);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(72, 16);
+            this.label4.TabIndex = 8;
+            this.label4.Text = "Total: Rp.0";
+            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // FormTransaksi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.TabelKeranjang);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.BtnHitung);
             this.Controls.Add(this.TBjumlah);
             this.Controls.Add(this.label2);
@@ -93,6 +143,7 @@
             this.Controls.Add(this.BoxObat);
             this.Name = "FormTransaksi";
             this.Text = "Form3";
+            ((System.ComponentModel.ISupportInitialize)(this.TabelKeranjang)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -105,5 +156,9 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox TBjumlah;
         private System.Windows.Forms.Button BtnHitung;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.DataGridView TabelKeranjang;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
     }
 }
