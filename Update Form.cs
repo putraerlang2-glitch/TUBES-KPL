@@ -65,5 +65,10 @@ namespace TubesKPL
         // Biarkan method kosong ini tetap ada jika Designer masih merujuk ke sini
         private void textBox1_TextChanged(object sender, EventArgs e) { }
         private void label1_Click(object sender, EventArgs e) { }
+
+        private void dtpExpired_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

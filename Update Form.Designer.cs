@@ -126,6 +126,7 @@
             this.dtpExpired.Name = "dtpExpired";
             this.dtpExpired.Size = new System.Drawing.Size(200, 22);
             this.dtpExpired.TabIndex = 10;
+            this.dtpExpired.ValueChanged += new System.EventHandler(this.dtpExpired_ValueChanged);
             // 
             // btnBatal
             // 

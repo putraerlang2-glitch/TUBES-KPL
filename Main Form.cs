@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using static TubesKPL.Obat;
 
 namespace TubesKPL
 {
@@ -13,12 +14,12 @@ namespace TubesKPL
 
         List<Obat> daftarObat = new List<Obat>()
         {
-            new Obat("Paracetamol", 21, 5000, new DateTime(2025, 6, 15)),
-            new Obat("Ibuprofen", 17, 7000, new DateTime(2025, 8, 20)),
-            new Obat("Sanmol", 5, 3000, new DateTime(2024, 12, 31)),
-            new Obat("HRIG", 3, 20000, new DateTime(2024, 11, 10)),
-            new Obat("Influenza", 15, 2000, new DateTime(2025, 3, 15)),
-            new Obat("Jane Doe", 50, 500000, new DateTime(2026, 1, 1))
+            new Obat("Paracetamol", 21, 5000, new DateTime(2025, 1, 15), KategoriObat.Tablet),
+            new Obat("Ibuprofen", 12, 7000, new DateTime(2024, 7, 20), KategoriObat.Tablet),
+            new Obat("Sanmol", 15, 3000, new DateTime(2025, 4, 5), KategoriObat.Sirup),
+            new Obat("HRIG", 12, 20000, new DateTime(2024, 3, 10), KategoriObat.AntiJamur),
+            new Obat("Influenza", 10, 2000, new DateTime(2025, 3, 15), KategoriObat.Tablet),
+            new Obat("Jane Doe", 11, 500000, new DateTime(2026, 8, 1), KategoriObat.Vitamin)
         };
 
         public void RefreshData()
@@ -48,6 +49,7 @@ namespace TubesKPL
 
             DataTable dt = new DataTable();
             dt.Columns.Add("Nama Obat");
+            dt.Columns.Add("Kategori");
             dt.Columns.Add("Stok");
             dt.Columns.Add("Harga");
             dt.Columns.Add("Tanggal Expired");
@@ -55,7 +57,7 @@ namespace TubesKPL
 
             foreach (var obat in data)
             {
-                dt.Rows.Add(obat.nama, obat.stok, obat.harga.ToString("C"),
+                dt.Rows.Add(obat.nama,obat.kategori.ToString(), obat.stok, obat.harga.ToString("C"),
                     obat.expiredDate.ToString("dd/MM/yyyy"), obat.status.ToString());
             }
 
@@ -99,7 +101,7 @@ namespace TubesKPL
         {
             for (int i = 0; i < tblObat.Rows.Count; i++)
             {
-                string status = tblObat.Rows[i].Cells[4].Value?.ToString();
+                string status = tblObat.Rows[i].Cells[5].Value?.ToString();
                 DataGridViewRow row = tblObat.Rows[i];
 
                 if (status == "Expired") row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200);
@@ -181,21 +183,44 @@ namespace TubesKPL
         public decimal harga { get; set; }
         public DateTime expiredDate { get; set; }
         public StatusObat status { get; set; }
+        public KategoriObat kategori { get; set; }
 
-        public Obat(string nama, int stok, decimal harga, DateTime expiredDate)
+        private static Dictionary<KategoriObat, int> batasMinimumStok = new Dictionary<KategoriObat, int>()
+{
+        { KategoriObat.Tablet, 10 },
+        { KategoriObat.Salep, 8 },
+        { KategoriObat.Sirup, 11 },
+        { KategoriObat.Vitamin, 8 },
+        { KategoriObat.Antibiotik, 15 },
+        { KategoriObat.AntiJamur, 7 }
+};
+
+        public Obat(string nama, int stok, decimal harga, DateTime expiredDate, KategoriObat kategori)
         {
             this.nama = nama;
             this.stok = stok;
             this.harga = harga;
             this.expiredDate = expiredDate;
+            this.kategori = kategori;
             UpdateStatus();
         }
 
         public void UpdateStatus()
         {
-            if (expiredDate < DateTime.Now) status = StatusObat.Expired;
-            else if (stok < 10) status = StatusObat.LowStock;
+            if (expiredDate < DateTime.Now)
+                status = StatusObat.Expired;
+            else if (stok < batasMinimumStok[kategori])
+                status = StatusObat.LowStock; 
             else status = StatusObat.Available;
+        }
+        public enum KategoriObat
+        {
+            Tablet,
+            Salep,
+            Sirup,
+            Vitamin,
+            Antibiotik,
+            AntiJamur
         }
     }
 }

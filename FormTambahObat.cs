@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static TubesKPL.Obat;
 
 namespace TubesKPL
 {
@@ -60,7 +61,7 @@ namespace TubesKPL
                     return;
                 }
 
-                obatBaru = new Obat(nama, stok, harga, expired);
+                obatBaru = new Obat(nama, stok, harga, expired, KategoriObat.Tablet) ;
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();

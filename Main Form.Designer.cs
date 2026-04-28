@@ -41,6 +41,7 @@
             // 
             // tblObat
             // 
+            this.tblObat.AllowUserToOrderColumns = true;
             this.tblObat.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.tblObat.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.tblObat.Location = new System.Drawing.Point(37, 30);
