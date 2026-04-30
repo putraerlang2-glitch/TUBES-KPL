@@ -19,3 +19,7 @@ C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.csproj.GenerateRe
 C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.csproj.CoreCompileInputs.cache
 C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.exe
 C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.pdb
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.FormTransaksi.resources
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.Form2.resources
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.FormLogin.resources
+C:\Users\YONDEV\source\repos\TUBES-KPL-main\obj\Debug\TubesKPL.FormTambahObat.resources

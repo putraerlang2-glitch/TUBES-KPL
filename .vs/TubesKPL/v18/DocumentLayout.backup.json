@@ -3,12 +3,44 @@
   "WorkspaceRootPath": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|c:\\users\\yondev\\source\\repos\\tubes-kpl-main\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2B34854F-E0F8-49A4-B090-7BF2AA91C5CE}|TubesKPL.csproj|solutionrelative:form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\TubesKPL.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TubesKPL.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTransaksi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FormTransaksi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.Designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FormTambahObat.Designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FormTambahObat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.Designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FormLogin.Designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:FormLogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\StatusConfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:StatusConfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\CONTOH_PENGGUNAAN.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CONTOH_PENGGUNAAN.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,32 +54,131 @@
           "Children": [
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Form1.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\Form1.cs",
-              "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\Form1.cs [Design]",
-              "RelativeToolTip": "Form1.cs [Design]",
+              "Title": ".NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "RelativeDocumentMoniker": "obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "RelativeToolTip": "obj\\Release\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-27T10:41:09.837Z",
-              "EditorCaption": " [Design]"
+              "WhenOpened": "2026-04-30T12:00:57.058Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Form1.cs",
-              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\Form1.cs",
-              "RelativeDocumentMoniker": "Form1.cs",
-              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\Form1.cs",
-              "RelativeToolTip": "Form1.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAvwC4AAAA1AAAAAAAAAA==",
+              "Title": ".NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "RelativeDocumentMoniker": "obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "RelativeToolTip": "obj\\Debug\\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-27T10:40:48.085Z",
+              "WhenOpened": "2026-04-30T12:00:53.864Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TubesKPL.csproj",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\TubesKPL.csproj",
+              "RelativeDocumentMoniker": "TubesKPL.csproj",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\TubesKPL.csproj",
+              "RelativeToolTip": "TubesKPL.csproj",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAAADMAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-30T11:57:18.255Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FormTransaksi.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTransaksi.cs",
+              "RelativeDocumentMoniker": "FormTransaksi.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTransaksi.cs",
+              "RelativeToolTip": "FormTransaksi.cs",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:50:06.02Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "FormTambahObat.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.Designer.cs",
+              "RelativeDocumentMoniker": "FormTambahObat.Designer.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.Designer.cs",
+              "RelativeToolTip": "FormTambahObat.Designer.cs",
+              "ViewState": "AgIAAMMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:50:03.552Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "FormTambahObat.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.cs",
+              "RelativeDocumentMoniker": "FormTambahObat.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormTambahObat.cs",
+              "RelativeToolTip": "FormTambahObat.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:49:59.768Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FormLogin.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.Designer.cs",
+              "RelativeDocumentMoniker": "FormLogin.Designer.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.Designer.cs",
+              "RelativeToolTip": "FormLogin.Designer.cs",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:49:54.311Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "StatusConfig.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\StatusConfig.cs",
+              "RelativeDocumentMoniker": "StatusConfig.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\StatusConfig.cs",
+              "RelativeToolTip": "StatusConfig.cs",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:49:09.006Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "FormLogin.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.cs",
+              "RelativeDocumentMoniker": "FormLogin.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\FormLogin.cs",
+              "RelativeToolTip": "FormLogin.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:48:57.347Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "CONTOH_PENGGUNAAN.cs",
+              "DocumentMoniker": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\CONTOH_PENGGUNAAN.cs",
+              "RelativeDocumentMoniker": "CONTOH_PENGGUNAAN.cs",
+              "ToolTip": "C:\\Users\\YONDEV\\source\\repos\\TUBES-KPL-main\\CONTOH_PENGGUNAAN.cs",
+              "RelativeToolTip": "CONTOH_PENGGUNAAN.cs",
+              "ViewState": "AgIAAKIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-30T11:48:50.517Z"
             }
           ]
         }
