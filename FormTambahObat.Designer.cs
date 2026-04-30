@@ -38,6 +38,8 @@
             this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
             this.btnSimpan_Click = new System.Windows.Forms.Button();
             this.btnBatal_Click = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // label1
@@ -74,11 +76,12 @@
             // 
             this.label4.AutoSize = true;
             this.label4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label4.Location = new System.Drawing.Point(103, 183);
+            this.label4.Location = new System.Drawing.Point(102, 215);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(115, 18);
             this.label4.TabIndex = 3;
             this.label4.Text = "Tanggal Expired :";
+            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // textBox1
             // 
@@ -109,7 +112,7 @@
             // 
             // dateTimePicker1
             // 
-            this.dateTimePicker1.Location = new System.Drawing.Point(282, 183);
+            this.dateTimePicker1.Location = new System.Drawing.Point(282, 215);
             this.dateTimePicker1.Name = "dateTimePicker1";
             this.dateTimePicker1.Size = new System.Drawing.Size(196, 22);
             this.dateTimePicker1.TabIndex = 8;
@@ -117,7 +120,7 @@
             // 
             // btnSimpan_Click
             // 
-            this.btnSimpan_Click.Location = new System.Drawing.Point(186, 245);
+            this.btnSimpan_Click.Location = new System.Drawing.Point(165, 284);
             this.btnSimpan_Click.Name = "btnSimpan_Click";
             this.btnSimpan_Click.Size = new System.Drawing.Size(75, 30);
             this.btnSimpan_Click.TabIndex = 9;
@@ -127,7 +130,7 @@
             // 
             // btnBatal_Click
             // 
-            this.btnBatal_Click.Location = new System.Drawing.Point(366, 245);
+            this.btnBatal_Click.Location = new System.Drawing.Point(369, 284);
             this.btnBatal_Click.Name = "btnBatal_Click";
             this.btnBatal_Click.Size = new System.Drawing.Size(75, 30);
             this.btnBatal_Click.TabIndex = 10;
@@ -135,11 +138,33 @@
             this.btnBatal_Click.UseVisualStyleBackColor = true;
             this.btnBatal_Click.Click += new System.EventHandler(this.btnBatal_Click_Click);
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label5.Location = new System.Drawing.Point(102, 180);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(97, 18);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Kategori Obat :";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(282, 174);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(196, 24);
+            this.comboBox1.TabIndex = 12;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
             // FormTambahObat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(600, 411);
+            this.Controls.Add(this.comboBox1);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.btnBatal_Click);
             this.Controls.Add(this.btnSimpan_Click);
             this.Controls.Add(this.dateTimePicker1);
@@ -169,5 +194,7 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker1;
         private System.Windows.Forms.Button btnSimpan_Click;
         private System.Windows.Forms.Button btnBatal_Click;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ComboBox comboBox1;
     }
 }
