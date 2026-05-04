@@ -1,0 +1,75 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                        🚀 QUICK START CHECKLIST                                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+✅ TAHAP 0: VERIFIKASI BUILD
+────────────────────────────────────────────────────────────────────────────────
+☐ Buka solution di Visual Studio
+☐ Tekan Ctrl+Shift+B untuk build
+☐ Pastikan "Build successful" di output
+
+✅ TAHAP 1: SETUP MULTIPLE STARTUP PROJECTS
+────────────────────────────────────────────────────────────────────────────────
+☐ Right-click Solution → "Set Startup Projects..."
+☐ Pilih "Multiple Startup Projects"
+☐ TubesKPL: Action = "Start"
+☐ ObatAPI: Action = "Start"
+☐ OK
+
+✅ TAHAP 2: RUN APLIKASI
+────────────────────────────────────────────────────────────────────────────────
+☐ Tekan F5 untuk Start Debugging
+☐ Tunggu 2 windows terbuka:
+  - Console window (API server)
+  - WinForms window (client)
+
+✅ TAHAP 3: VERIFY API RUNNING
+────────────────────────────────────────────────────────────────────────────────
+☐ Lihat console output: "Now listening on: https://localhost:7103"
+☐ Browser: https://localhost:7103/swagger
+☐ Verify Swagger page load
+
+✅ TAHAP 4: VERIFY CLIENT RUNNING
+────────────────────────────────────────────────────────────────────────────────
+☐ WinForms window terbuka
+☐ DataGridView menampilkan 3 obat (sample data)
+☐ Title bar: "Apotek - Avail: X | Low: Y | Expired: Z"
+☐ Tidak ada error popup
+
+✅ TAHAP 5: TEST SEARCH
+────────────────────────────────────────────────────────────────────────────────
+☐ Type "Paracetamol" di search box
+☐ Klik "Cari"
+☐ Filter hasil muncul
+
+✅ TAHAP 6: TEST TAMBAH OBAT
+────────────────────────────────────────────────────────────────────────────────
+☐ Klik tombol "Tambah"
+☐ FormTambahObat terbuka
+☐ Isi: Nama, Kategori, Stok, Harga, Expired
+☐ Klik Simpan
+☐ Obat muncul di table
+
+✅ TAHAP 7: TEST HAPUS OBAT
+────────────────────────────────────────────────────────────────────────────────
+☐ Select salah satu baris
+☐ Klik tombol "Hapus"
+☐ Confirmation: Click Yes
+☐ Obat hilang dari table
+
+✅ TAHAP 8: VERIFY CONSOLE LOGS
+────────────────────────────────────────────────────────────────────────────────
+☐ Periksa console untuk "[MAIN FORM]" messages
+☐ Periksa untuk "[API CLIENT]" messages
+☐ Tidak ada error messages
+
+✅ ALL CLEAR! 🎉
+────────────────────────────────────────────────────────────────────────────────
+Jika semua checkpoint dilewati, sistem ready untuk production!
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📞 JIKA ADA ERROR, LIHAT:
+  → INTEGRATION_GUIDE.md (Troubleshooting section)
+  → Visual Studio Output window (Build atau Debug pane)
+  → Console window untuk API error logs
