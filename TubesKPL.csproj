@@ -52,12 +52,15 @@
     <Compile Include="FormTransaksi.Designer.cs">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </Compile>
+    <Compile Include="JsonDataManager.cs" />
     <Compile Include="Main Form.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main Form.Designer.cs">
       <DependentUpon>Main Form.cs</DependentUpon>
     </Compile>
+    <Compile Include="Obat.cs" />
+    <Compile Include="ObatApiClient.cs" />
     <Compile Include="Update Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,6 +81,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ObatApiService.cs" />
     <EmbeddedResource Include="FormTransaksi.resx">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </EmbeddedResource>
@@ -102,6 +106,26 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="ANALISIS_HTTPAPI_SERVER_UNUSED.md" />
+    <None Include="ANALISIS_KODE_YANG_DIHAPUS.md" />
+    <None Include="COMPLETION_REPORT.md" />
+    <None Include="COMPREHENSIVE_SESSION_SUMMARY.md" />
+    <None Include="data.json" />
+    <None Include="DOCUMENTATION.md" />
+    <None Include="DOCUMENTATION_INDEX.md" />
+    <None Include="DOKUMENTASI_TUBES_KPL.md" />
+    <None Include="END_OF_SESSION.md" />
+    <None Include="FINAL_COMPLETION_REPORT.md" />
+    <None Include="FIX_DEBUG_ERROR.md" />
+    <None Include="IMPLEMENTATION_CHECKLIST.md" />
+    <None Include="INDEX_QUICK_ACCESS.md" />
+    <None Include="INTEGRATION_GUIDE.md" />
+    <None Include="INTEGRATION_SETUP.md" />
+    <None Include="INTEGRATION_SUMMARY.md" />
+    <None Include="INTEGRATION_WORK_SUMMARY.md" />
+    <None Include="LAPORAN_CLEANUP_FINAL.md" />
+    <None Include="PROGRESS.md" />
+    <None Include="PROJECT_STRUCTURE.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -111,9 +135,25 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="QUICKSTART.md" />
+    <None Include="QUICK_FIX_2MIN.md" />
+    <None Include="QUICK_REFERENCE.md" />
+    <None Include="README_ALL_FIXES.md" />
+    <None Include="README_DOCUMENTATION.md" />
+    <None Include="SESSION_SUMMARY.md" />
+    <None Include="START_HERE.md" />
+    <None Include="VISUAL_GUIDE_DEBUG_FIX.md" />
+    <None Include="VISUAL_STUDIO_SETUP.md" />
+    <None Include="VISUAL_SUMMARY_SESSION.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HOWTO_RUN.txt" />
+    <Content Include="QUICKSTART.txt" />
+    <Content Include="STATUS_REPORT.txt" />
+    <Content Include="SUMMARY.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

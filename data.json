@@ -1,0 +1,46 @@
+{
+  "obat": [
+    {
+      "nama": "Paracetamol",
+      "stok": 21,
+      "harga": 5000,
+      "expiredDate": "2025-01-15",
+      "kategori": "Tablet"
+    },
+    {
+      "nama": "Ibuprofen",
+      "stok": 12,
+      "harga": 7000,
+      "expiredDate": "2024-07-20",
+      "kategori": "Tablet"
+    },
+    {
+      "nama": "Sanmol",
+      "stok": 15,
+      "harga": 3000,
+      "expiredDate": "2025-04-05",
+      "kategori": "Sirup"
+    },
+    {
+      "nama": "HRIG",
+      "stok": 12,
+      "harga": 20000,
+      "expiredDate": "2024-03-10",
+      "kategori": "AntiJamur"
+    },
+    {
+      "nama": "Influenza",
+      "stok": 10,
+      "harga": 2000,
+      "expiredDate": "2025-03-15",
+      "kategori": "Tablet"
+    },
+    {
+      "nama": "Jane Doe",
+      "stok": 11,
+      "harga": 500000,
+      "expiredDate": "2026-08-01",
+      "kategori": "Vitamin"
+    }
+  ]
+}
