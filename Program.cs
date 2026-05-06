@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+<<<<<<< HEAD
 using System.Net;
+=======
+>>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
 
 namespace TubesKPL
 {
     internal static class Program
     {
         /// <summary>
+<<<<<<< HEAD
         /// ⚠️ CATATAN INTEGRASI:
         /// 
         /// DEPRECATED: HttpApiServer.cs tidak digunakan lagi!
@@ -37,11 +41,14 @@ namespace TubesKPL
         /// </summary>
 
         /// <summary>
+=======
+>>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main()
         {
+<<<<<<< HEAD
             // [IMPORTANT] Handle self-signed HTTPS certificate untuk development
             // ASP.NET Core 6 menggunakan self-signed cert di development environment
             // Ini diperlukan agar WinForms client bisa connect ke API via HTTPS
@@ -53,6 +60,10 @@ namespace TubesKPL
 
             // [INTEGRATION] Application entry point
             // FormLogin akan load, kemudian Main Form akan connect ke ObatAPI
+=======
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+>>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
             Application.Run(new FormLogin());
         }
     }
