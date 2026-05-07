@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -35,6 +35,7 @@ namespace TubesKPL
         private void label4_Click(object sender, EventArgs e) { }
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
 
+        // TOMBOL UBAH CONFIGURATOR
         private void BtnUbahConfig_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TBPajak.Text) || string.IsNullOrWhiteSpace(TBDiskon.Text))
@@ -59,6 +60,7 @@ namespace TubesKPL
             }
         }
 
+        // TOMBOL BAYAR / HITUNG
         private void BtnHitung_Click(object sender, EventArgs e)
         {
             if (keranjang.Count == 0)

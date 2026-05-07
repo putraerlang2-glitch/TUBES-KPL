@@ -40,11 +40,13 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
+            // Update status semua obat
             foreach (var obat in data)
             {
                 obat.UpdateStatus();
             }
 
+            // Buat DataTable untuk menampilkan data
             DataTable dt = new DataTable();
             dt.Columns.Add("Nama Obat");
             dt.Columns.Add("Stok");
@@ -60,6 +62,7 @@ namespace TubesKPL
 
             tblObat.DataSource = dt;
 
+            // Terapkan warna berdasarkan status
             TerapkanWarnaStatus();
         }
 
@@ -75,13 +78,13 @@ namespace TubesKPL
                     switch (status)
                     {
                         case "Expired":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); 
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); // Merah muda
                             break;
                         case "LowStock":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); 
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); // Kuning muda
                             break;
                         case "Available":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); 
+                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); // Hijau muda
                             break;
                     }
                 }
@@ -93,7 +96,7 @@ namespace TubesKPL
             List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
             List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
 
-
+            // Notifikasi obat expired
             if (obatExpired.Count > 0)
             {
                 string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
@@ -104,6 +107,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
+            // Notifikasi obat low stock
             if (obatLowStock.Count > 0)
             {
                 string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
@@ -114,7 +118,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-
+            // Tampilkan statistik
             TampilkanStatistik();
         }
 
@@ -158,57 +162,6 @@ namespace TubesKPL
             {
                 MessageBox.Show("Obat tidak ada");
                 TampilkanData(daftarObat);
-            }
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            FormTambahObat formTambah = new FormTambahObat();
-
-            // kalau user klik simpan (OK)
-            if (formTambah.ShowDialog() == DialogResult.OK)
-            {
-                Obat obatBaru = formTambah.obatBaru;
-
-                daftarObat.Add(obatBaru);
-
-                TampilkanData(daftarObat);
-                TampilkanStatistik();
-            }
-        }
-
-        private void btnHapus_Click(object sender, EventArgs e)
-        {
-            if (tblObat.CurrentCell != null && tblObat.Rows.Count > 0)
-            {
-                int selectedIndex = tblObat.CurrentCell.RowIndex;
-
-                string namaObat = tblObat.Rows[selectedIndex].Cells[0].Value?.ToString();
-
-                DialogResult dialogResult = MessageBox.Show(
-                    $"Apakah kamu yakin ingin menghapus obat '{namaObat}'?",
-                    "Konfirmasi Hapus",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
-
-                if (dialogResult == DialogResult.Yes)
-                {
-                    Obat obatDihapus = daftarObat.FirstOrDefault(o => o.nama == namaObat);
-
-                    if (obatDihapus != null)
-                    {
-                        daftarObat.Remove(obatDihapus);
-
-                        TampilkanData(daftarObat);
-                        TampilkanStatistik();
-
-                        MessageBox.Show("Data obat berhasil dihapus!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Silakan pilih data obat di tabel terlebih dahulu yang ingin dihapus.", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

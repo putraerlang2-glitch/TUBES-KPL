@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 using System.Windows.Forms;
 
 namespace TubesKPL
@@ -9,13 +7,18 @@ namespace TubesKPL
     internal static class Program
     {
         /// <summary>
-        /// The main entry point for the application.
+        /// Main entry point aplikasi
         /// </summary>
         [STAThread]
         static void Main()
         {
+            // Handle HTTPS certificate untuk development ASP.NET Core API
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (sender, cert, chain, sslPolicyErrors) => true;
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
             Application.Run(new FormLogin());
         }
     }

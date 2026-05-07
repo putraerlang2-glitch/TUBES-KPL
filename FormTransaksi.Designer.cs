@@ -1,4 +1,4 @@
-﻿namespace TubesKPL
+namespace TubesKPL
 {
     partial class FormTransaksi
     {
