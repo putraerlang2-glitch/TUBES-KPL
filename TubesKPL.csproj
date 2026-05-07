@@ -52,21 +52,15 @@
     <Compile Include="FormTransaksi.Designer.cs">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </Compile>
-<<<<<<< HEAD
     <Compile Include="JsonDataManager.cs" />
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
     <Compile Include="Main Form.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Main Form.Designer.cs">
       <DependentUpon>Main Form.cs</DependentUpon>
     </Compile>
-<<<<<<< HEAD
     <Compile Include="Obat.cs" />
     <Compile Include="ObatApiClient.cs" />
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
     <Compile Include="Update Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,10 +81,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-<<<<<<< HEAD
     <Compile Include="ObatApiService.cs" />
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
     <EmbeddedResource Include="FormTransaksi.resx">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </EmbeddedResource>
@@ -115,7 +106,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-<<<<<<< HEAD
     <None Include="ANALISIS_HTTPAPI_SERVER_UNUSED.md" />
     <None Include="ANALISIS_KODE_YANG_DIHAPUS.md" />
     <None Include="COMPLETION_REPORT.md" />
@@ -136,8 +126,6 @@
     <None Include="LAPORAN_CLEANUP_FINAL.md" />
     <None Include="PROGRESS.md" />
     <None Include="PROJECT_STRUCTURE.md" />
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -147,7 +135,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-<<<<<<< HEAD
     <None Include="QUICKSTART.md" />
     <None Include="QUICK_FIX_2MIN.md" />
     <None Include="QUICK_REFERENCE.md" />
@@ -158,20 +145,15 @@
     <None Include="VISUAL_GUIDE_DEBUG_FIX.md" />
     <None Include="VISUAL_STUDIO_SETUP.md" />
     <None Include="VISUAL_SUMMARY_SESSION.md" />
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-<<<<<<< HEAD
   <ItemGroup>
     <Content Include="HOWTO_RUN.txt" />
     <Content Include="QUICKSTART.txt" />
     <Content Include="STATUS_REPORT.txt" />
     <Content Include="SUMMARY.txt" />
   </ItemGroup>
-=======
->>>>>>> e8a5e34b65fd78b876d32ffa1bb27b184dedc0e8
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
