@@ -129,7 +129,7 @@ namespace TubesKPL
             TabelKeranjang.DataSource = dt;
         }
 
-        // TOMBOL TAMBAH KE KERANJANG
+
         private void button1_Click(object sender, EventArgs e)
         {
             int jumlah;
@@ -160,6 +160,30 @@ namespace TubesKPL
             };
 
             keranjang.Add(item);
+            RefreshKeranjang();
+        }
+
+        private void BtnHapus_Click(object sender, EventArgs e)
+        {
+            int index = TabelKeranjang.CurrentRow?.Index ?? -1;
+
+            var validasi = new List<(bool kondisi, string pesan)>
+            {
+                (TabelKeranjang.CurrentRow == null, "Pilih item yang mau dihapus dulu ya!"),
+
+                (index < 0 || index >= keranjang.Count, "Item yang dipilih tidak valid!")
+            };
+
+            foreach (var aturan in validasi)
+            {
+                if (aturan.kondisi)
+                {
+                    MessageBox.Show(aturan.pesan);
+                    return;
+                }
+            }
+
+            keranjang.RemoveAt(index);
             RefreshKeranjang();
         }
     }
