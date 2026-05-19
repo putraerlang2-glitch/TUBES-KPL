@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace TubesKPL
@@ -13,11 +13,11 @@ namespace TubesKPL
 
             editingObat = obatToEdit;
 
-            // Isi kontrol input dengan data dari objek
-            txtNama.Text = editingObat.nama;
-            txtStok.Text = editingObat.stok.ToString();
-            txtHarga.Text = editingObat.harga.ToString();
-            dtpExpired.Value = editingObat.expiredDate;
+            // Menampilkan data obat ke dalam form isian.
+            txtNama.Text = editingObat.Nama;
+            txtStok.Text = editingObat.Stok.ToString();
+            txtHarga.Text = editingObat.Harga.ToString();
+            dtpExpired.Value = editingObat.ExpiredDate;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -25,8 +25,7 @@ namespace TubesKPL
             SimpanData();
         }
 
-        // --- SOLUSI ERROR CS1061 ---
-        // Jika Designer mencari 'button1_Click', kita arahkan ke fungsi Simpan
+        // Mencegah error tampilan desain dengan mengarahkan tombol ke fungsi penyimpan.
         private void button1_Click(object sender, EventArgs e)
         {
             SimpanData();
@@ -36,15 +35,15 @@ namespace TubesKPL
         {
             try
             {
-                editingObat.nama = txtNama.Text.Trim();
+                editingObat.Nama = txtNama.Text.Trim();
 
                 if (int.TryParse(txtStok.Text, out int newStok))
-                    editingObat.stok = newStok;
+                    editingObat.Stok = newStok;
 
                 if (decimal.TryParse(txtHarga.Text, out decimal newHarga))
-                    editingObat.harga = newHarga;
+                    editingObat.Harga = newHarga;
 
-                editingObat.expiredDate = dtpExpired.Value;
+                editingObat.ExpiredDate = dtpExpired.Value;
                 editingObat.UpdateStatus();
 
                 this.DialogResult = DialogResult.OK;
@@ -62,7 +61,7 @@ namespace TubesKPL
             this.Close();
         }
 
-        // Biarkan method kosong ini tetap ada jika Designer masih merujuk ke sini
+        // Dibiarkan kosong agar tampilan desain UI tidak error.
         private void textBox1_TextChanged(object sender, EventArgs e) { }
         private void label1_Click(object sender, EventArgs e) { }
 
