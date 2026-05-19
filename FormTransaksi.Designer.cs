@@ -45,6 +45,8 @@ namespace TubesKPL
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.BtnHapus = new System.Windows.Forms.Button();
+            this.LabelInfo = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.TabelKeranjang)).BeginInit();
             this.SuspendLayout();
             // 
@@ -147,6 +149,7 @@ namespace TubesKPL
             this.TBUangBayar.Name = "TBUangBayar";
             this.TBUangBayar.Size = new System.Drawing.Size(155, 22);
             this.TBUangBayar.TabIndex = 9;
+            this.TBUangBayar.TextChanged += new System.EventHandler(this.TBUangBayar_TextChanged);
             // 
             // BtnUbahConfig
             // 
@@ -216,11 +219,34 @@ namespace TubesKPL
             this.BtnHapus.UseVisualStyleBackColor = true;
             this.BtnHapus.Click += new System.EventHandler(this.BtnHapus_Click);
             // 
+            // LabelInfo
+            // 
+            this.LabelInfo.AutoSize = true;
+            this.LabelInfo.ForeColor = System.Drawing.Color.Red;
+            this.LabelInfo.Location = new System.Drawing.Point(241, 361);
+            this.LabelInfo.Name = "LabelInfo";
+            this.LabelInfo.Size = new System.Drawing.Size(0, 16);
+            this.LabelInfo.TabIndex = 17;
+            this.LabelInfo.Click += new System.EventHandler(this.label8_Click);
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.ForeColor = System.Drawing.Color.Red;
+            this.label8.Location = new System.Drawing.Point(317, 361);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(62, 16);
+            this.label8.TabIndex = 18;
+            this.label8.Text = "LabelInfo";
+            this.label8.Click += new System.EventHandler(this.label8_Click_2);
+            // 
             // FormTransaksi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.LabelInfo);
             this.Controls.Add(this.BtnHapus);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label6);
@@ -266,5 +292,7 @@ namespace TubesKPL
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Button BtnHapus;
+        private System.Windows.Forms.Label LabelInfo;
+        private System.Windows.Forms.Label label8;
     }
 }
