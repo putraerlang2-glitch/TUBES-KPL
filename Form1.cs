@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -40,13 +40,13 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
-            // Update status semua obat
+            // Memperbarui status semua obat.
             foreach (var obat in data)
             {
                 obat.UpdateStatus();
             }
 
-            // Buat DataTable untuk menampilkan data
+            // Menyiapkan tabel untuk menampilkan data obat.
             DataTable dt = new DataTable();
             dt.Columns.Add("Nama Obat");
             dt.Columns.Add("Stok");
@@ -62,7 +62,7 @@ namespace TubesKPL
 
             tblObat.DataSource = dt;
 
-            // Terapkan warna berdasarkan status
+            // Mewarnai baris tabel sesuai status obat.
             TerapkanWarnaStatus();
         }
 
@@ -96,7 +96,7 @@ namespace TubesKPL
             List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
             List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
 
-            // Notifikasi obat expired
+            // Menampilkan peringatan jika ada obat yang sudah kadaluarsa.
             if (obatExpired.Count > 0)
             {
                 string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
@@ -107,7 +107,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            // Notifikasi obat low stock
+            // Menampilkan peringatan jika ada obat yang stoknya menipis.
             if (obatLowStock.Count > 0)
             {
                 string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
@@ -118,7 +118,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            // Tampilkan statistik
+            // Menampilkan jumlah obat berdasarkan status di judul aplikasi.
             TampilkanStatistik();
         }
 

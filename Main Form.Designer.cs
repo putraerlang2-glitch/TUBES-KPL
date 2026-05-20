@@ -56,20 +56,20 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(37, 284);
+            this.textBox1.Location = new System.Drawing.Point(37, 289);
             this.textBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(326, 26);
+            this.textBox1.Size = new System.Drawing.Size(216, 26);
             this.textBox1.TabIndex = 1;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(37, 316);
+            this.button1.Location = new System.Drawing.Point(259, 286);
             this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(326, 30);
+            this.button1.Size = new System.Drawing.Size(75, 30);
             this.button1.TabIndex = 2;
             this.button1.Text = "Cari";
             this.button1.UseVisualStyleBackColor = true;
@@ -77,10 +77,10 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(37, 350);
+            this.button2.Location = new System.Drawing.Point(340, 286);
             this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(326, 30);
+            this.button2.Size = new System.Drawing.Size(75, 30);
             this.button2.TabIndex = 3;
             this.button2.Text = "Tambah";
             this.button2.UseVisualStyleBackColor = true;
@@ -89,10 +89,10 @@
             // btnHapus
             // 
             this.btnHapus.BackColor = System.Drawing.Color.LightCoral;
-            this.btnHapus.Location = new System.Drawing.Point(391, 284);
+            this.btnHapus.Location = new System.Drawing.Point(643, 286);
             this.btnHapus.Margin = new System.Windows.Forms.Padding(4);
             this.btnHapus.Name = "btnHapus";
-            this.btnHapus.Size = new System.Drawing.Size(249, 28);
+            this.btnHapus.Size = new System.Drawing.Size(91, 28);
             this.btnHapus.TabIndex = 4;
             this.btnHapus.Text = "Hapus";
             this.btnHapus.UseVisualStyleBackColor = false;
@@ -100,9 +100,9 @@
             // 
             // btnUpdate
             // 
-            this.btnUpdate.Location = new System.Drawing.Point(37, 385);
+            this.btnUpdate.Location = new System.Drawing.Point(293, 321);
             this.btnUpdate.Name = "btnUpdate";
-            this.btnUpdate.Size = new System.Drawing.Size(326, 26);
+            this.btnUpdate.Size = new System.Drawing.Size(80, 26);
             this.btnUpdate.TabIndex = 5;
             this.btnUpdate.Text = "Update";
             this.btnUpdate.UseVisualStyleBackColor = true;
@@ -119,9 +119,9 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(391, 320);
+            this.button3.Location = new System.Drawing.Point(379, 321);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(249, 26);
+            this.button3.Size = new System.Drawing.Size(103, 26);
             this.button3.TabIndex = 7;
             this.button3.Text = "Transaksi";
             this.button3.UseVisualStyleBackColor = true;
