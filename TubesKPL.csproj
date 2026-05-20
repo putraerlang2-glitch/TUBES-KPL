@@ -61,6 +61,10 @@
     </Compile>
     <Compile Include="Obat.cs" />
     <Compile Include="ObatApiClient.cs" />
+    <Compile Include="ObatStateMachine.cs" />
+    <Compile Include="NotifikasiHelper.cs" />
+    <Compile Include="RuntimeConfig.cs" />
+    <Compile Include="StrukGenerator.cs" />
     <Compile Include="Update Form.cs">
       <SubType>Form</SubType>
     </Compile>
