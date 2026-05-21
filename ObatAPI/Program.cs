@@ -1,13 +1,28 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using ObatAPI.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
+// Mendaftarkan fitur-fitur yang dibutuhkan program API.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Konfigurasi JSON serialization dengan property naming camelCase
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
-// Add Swagger untuk API documentation & testing
+// Menambahkan halaman otomatis agar API mudah dites melalui browser.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS untuk allow WinForms client (localhost) 
+// Mendaftarkan services untuk dependency injection
+builder.Services.AddScoped<IObatService, ObatService>();
+
+// Mengizinkan aplikasi utama yang kita buat untuk mengambil data dari API ini.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -20,7 +35,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Mengatur urutan langkah-langkah dalam memproses data masuk.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

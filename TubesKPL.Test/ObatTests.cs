@@ -23,7 +23,7 @@ namespace TubesKPL.Test
             obat.UpdateStatus();
 
             //Assert
-            Assert.Equal("Expired", obat.Status);
+            Assert.Equal(StatusObat.Expired, obat.Status);
         }
         [Fact]
         public void Test_StokRendah_jadiLowStock()
@@ -37,7 +37,7 @@ namespace TubesKPL.Test
                 );
 
             obat.UpdateStatus();
-            Assert.Equal("LowStock", obat.Status);
+            Assert.Equal(StatusObat.LowStock, obat.Status);
         }
         [Fact]
         public void Test_StokBanyak_jadiAvailable()
@@ -51,7 +51,7 @@ namespace TubesKPL.Test
                 );
 
             obat.UpdateStatus();
-            Assert.Equal("Available", obat.Status);
+            Assert.Equal(StatusObat.Available, obat.Status);
         }
 
     }
