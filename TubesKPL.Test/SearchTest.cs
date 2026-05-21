@@ -28,7 +28,7 @@ namespace TubesKPL.Test
             var hasil = dataObat.Where(o => o.Nama.ToLower().Contains(keyword.ToLower())).ToList();
 
             Assert.Single(hasil);
-            Assert.Equal("Paracetamol", hasil[0].nama);
+            Assert.Equal("Paracetamol", hasil[0].Nama);
         }
         [Fact]
         public void test_Data_TidakDitemukan()
