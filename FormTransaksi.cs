@@ -26,7 +26,7 @@ namespace TubesKPL
             mainform = f1;
 
             BoxObat.DataSource = daftarObat;
-            BoxObat.DisplayMember = "nama";
+            BoxObat.DisplayMember = "Nama";
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -45,7 +45,7 @@ namespace TubesKPL
 
             foreach (var item in keranjang)
             {
-                item.obat.stok -= item.jumlah;
+                item.obat.Stok -= item.jumlah;
                 item.obat.UpdateStatus();
 
                 grandTotal += item.Subtotal();
@@ -89,7 +89,7 @@ namespace TubesKPL
 
             foreach (var item in keranjang)
             {
-                dt.Rows.Add(item.obat.nama,item.obat.harga.ToString("C"), item.jumlah,item.Subtotal().ToString("C"));
+                dt.Rows.Add(item.obat.Nama,item.obat.Harga.ToString("C"), item.jumlah,item.Subtotal().ToString("C"));
             }
             TabelKeranjang.DataSource = dt;
         }
@@ -100,7 +100,7 @@ namespace TubesKPL
             int jumlah;
 
             Obat o = (Obat)BoxObat.SelectedItem;
-            decimal harga = o.harga;
+            decimal harga = o.Harga;
 
             if (string.IsNullOrWhiteSpace(TBjumlah.Text))
             {
@@ -114,7 +114,7 @@ namespace TubesKPL
                 return;
             }
 
-            if (jumlah > o.stok)
+            if (jumlah > o.Stok)
             {
                 MessageBox.Show("Stok tidak cukup");
                 return;
@@ -138,6 +138,6 @@ public class ItemTransaksi
 
     public decimal Subtotal()
     {
-        return obat.harga * jumlah;
+        return obat.Harga * jumlah;
     }
 }

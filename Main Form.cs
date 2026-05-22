@@ -47,9 +47,7 @@ namespace TubesKPL
 
         private async void Form1_Load(object sender, EventArgs e)
         {
-            // ⚠️ PENTING: Pastikan ObatAPI sudah running sebelum load data!
-            // URL: https://localhost:7103/swagger (untuk test Swagger)
-            // Jalankan: dotnet run di folder ObatAPI
+           
 
             ObatApiClient client = null;
             try
@@ -78,12 +76,6 @@ namespace TubesKPL
                     daftarObat = GetSampleData();
                 }
 
-                // [AYONDI - REFACTOR] Initialize API service dengan data dari server
-                ObatApiService.Initialize(daftarObat);
-
-                // ⚠️ HttpApiServer TIDAK DIGUNAKAN - API ada di ObatAPI project
-                // HttpApiServer.SetObatData(daftarObat);  // DEPRECATED
-
                 // [AYONDI - REFACTOR] Tampilkan data di grid dan notifikasi
                 TampilkanData(daftarObat);
                 TampilkanNotifikasi();
@@ -105,7 +97,6 @@ namespace TubesKPL
                 // Fallback: gunakan sample data jika API tidak bisa diakses
                 daftarObat = GetSampleData();
 
-                ObatApiService.Initialize(daftarObat);
                 TampilkanData(daftarObat);
                 TampilkanNotifikasi();
             }
@@ -207,7 +198,7 @@ namespace TubesKPL
         // Dijalankan saat Form Load dan setelah perubahan data
         private void TampilkanNotifikasi()
         {
-            var obatExpired = daftarObat.Where(o => o.Status == "Expired").ToList();
+            var obatExpired = daftarObat.Where(o => o.Status == StatusObat.Expired).ToList();
 
             if (obatExpired.Count > 0)
             {
@@ -218,62 +209,56 @@ namespace TubesKPL
             TampilkanStatistik();
         }
 
-        // [AYONDI - REFACTOR] TampilkanStatistik menampilkan ringkasan status di title bar
+       
         private void TampilkanStatistik()
         {
-            int available = daftarObat.Count(o => o.Status == "Available");
-            int low = daftarObat.Count(o => o.Status == "LowStock");
-            int expired = daftarObat.Count(o => o.Status == "Expired");
+            int available = daftarObat.Count(o => o.Status == StatusObat.Available);
+            int low = daftarObat.Count(o => o.Status == StatusObat.LowStock);
+            int expired = daftarObat.Count(o => o.Status == StatusObat.Expired);
 
             this.Text = $"Apotek - Avail: {available} | Low: {low} | Expired: {expired}";
         }
 
-        // [AYONDI - ANALISIS] button1_Click adalah handler untuk tombol search
-        // Search obat berdasarkan nama (case-insensitive)
         private void button1_Click(object sender, EventArgs e) 
         {
-            // [AYONDI - ANALISIS] Get search term dari textBox1 dan convert ke lowercase
+            
             string inputan = textBox1.Text.ToLower();
-            // [AYONDI - ANALISIS] Filter obat menggunakan LINQ Where dan Contains (case-insensitive)
-            // Hasil adalah List<Obat> yang nama-nya mengandung search term
+            
             var hasil = daftarObat.Where(o => o.Nama.ToLower().Contains(inputan)).ToList();
 
             if (hasil.Count > 0) TampilkanData(hasil);
             else MessageBox.Show("Obat tidak ditemukan");
         }
 
-        // [AYONDI - ANALISIS] button2_Click adalah handler untuk tombol tambah obat
-        // Membuka FormTambahObat dialog, jika OK maka tambah obat ke daftarObat
+        
         private void button2_Click(object sender, EventArgs e) 
         {
-            // [AYONDI - ANALISIS] Buka FormTambahObat sebagai modal dialog
+           
             FormTambahObat formTambah = new FormTambahObat();
-            // [AYONDI - ANALISIS] Jika user klik OK (bukan Cancel)
+            
             if (formTambah.ShowDialog() == DialogResult.OK)
             {
-                // [AYONDI - ANALISIS] Tambah obat baru ke List
+                
                 daftarObat.Add(formTambah.obatBaru);
-                // [AYONDI - ANALISIS] Refresh tampilan dan statistik
+               
                 TampilkanData(daftarObat);
                 TampilkanStatistik();
             }
         }
 
-        // [AYONDI - ANALISIS] btnHapus_Click adalah handler untuk tombol hapus obat
-        // Delete obat yang selected di DataGridView
         private void btnHapus_Click(object sender, EventArgs e)
         {
-            // [AYONDI - ANALISIS] Cek apakah ada baris yang selected
+            
             if (tblObat.CurrentRow != null)
             {
-                // [AYONDI - ANALISIS] Get nama obat dari Cell[0] (Nama Obat column)
+                
                 string nama = tblObat.CurrentRow.Cells[0].Value.ToString();
-                // [AYONDI - ANALISIS] Tampilkan konfirmasi dialog
+               
                 if (MessageBox.Show($"Hapus {nama}?", "Konfirmasi", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    // [AYONDI - ANALISIS] Remove semua obat dengan nama yang match menggunakan RemoveAll
+                    
                     daftarObat.RemoveAll(o => o.Nama == nama);
-                    // [AYONDI - ANALISIS] Refresh tampilan dan statistik
+                    
                     TampilkanData(daftarObat);
                     TampilkanStatistik();
                 }
@@ -291,7 +276,5 @@ namespace TubesKPL
         }
     }
 
-    // ⚠️ CATATAN: Model Obat sudah dipindahkan ke Obat.cs (file terpisah)
-    // File lama di Main Form.cs sudah dihapus untuk menghindari duplikasi
-    // Gunakan model dari Obat.cs yang support API integration
+    
 }

@@ -88,8 +88,31 @@ namespace TubesKPL
         /// <summary>Perbarui status obat berdasarkan stok dan tanggal kadaluarsa</summary>
         public void UpdateStatus()
         {
-            string statusString = ObatStateMachine.CalculateStatus(Stok, ExpiredDate);
-            Status = ObatStateMachine.GetStatusEnum(statusString);
+            const int LOW_STOCK_THRESHOLD = 5;
+            const int SOON_TO_EXPIRE_DAYS = 30;
+
+            var today = DateTime.Now.Date;
+
+            if (ExpiredDate.Date < today)
+            {
+                Status = StatusObat.Expired;
+            }
+            else
+            {
+                int daysUntilExpire = (int)(ExpiredDate.Date - today).TotalDays;
+                if (daysUntilExpire > 0 && daysUntilExpire < SOON_TO_EXPIRE_DAYS)
+                {
+                    Status = StatusObat.SoonToExpire;
+                }
+                else if (Stok <= LOW_STOCK_THRESHOLD)
+                {
+                    Status = StatusObat.LowStock;
+                }
+                else
+                {
+                    Status = StatusObat.Available;
+                }
+            }
         }
 
         /// <summary>Tampilkan data obat dalam satu baris</summary>

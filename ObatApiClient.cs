@@ -68,10 +68,6 @@ namespace TubesKPL
             {
                 throw new Exception($"❌ Timeout: ObatAPI tidak merespons dalam 30 detik");
             }
-            catch (JsonException ex)
-            {
-                throw new Exception($"❌ Error parsing JSON response: {ex.Message}", ex);
-            }
             catch (Exception ex)
             {
                 throw new Exception($"❌ Error GetAllObat: {ex.Message}", ex);
@@ -110,10 +106,6 @@ namespace TubesKPL
             catch (HttpRequestException ex)
             {
                 throw new Exception($"❌ Connection Error saat fetch ID {id}: {ex.Message}", ex);
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception($"❌ Error parsing JSON response: {ex.Message}", ex);
             }
             catch (Exception ex) when (!(ex is ArgumentException))
             {
@@ -155,10 +147,6 @@ namespace TubesKPL
             catch (HttpRequestException ex)
             {
                 throw new Exception($"❌ Connection Error saat POST: {ex.Message}", ex);
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception($"❌ Error serializing/parsing JSON: {ex.Message}", ex);
             }
             catch (Exception ex) when (!(ex is ArgumentException))
             {
@@ -204,10 +192,6 @@ namespace TubesKPL
             catch (HttpRequestException ex)
             {
                 throw new Exception($"❌ Connection Error saat PUT: {ex.Message}", ex);
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception($"❌ Error serializing/parsing JSON: {ex.Message}", ex);
             }
             catch (Exception ex) when (!(ex is ArgumentException))
             {
