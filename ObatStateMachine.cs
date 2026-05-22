@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace TubesKPL
 {
     /// <summary>
     /// State Machine untuk menentukan status obat berdasarkan stok dan tanggal kadaluarsa.
+    /// Menggunakan table-driven approach untuk rules dan transitions.
     /// 
     /// Logic priority: Expired > SoonToExpire > LowStock > Available
     /// </summary>
@@ -16,10 +18,88 @@ namespace TubesKPL
         public const int SOON_TO_EXPIRE_DAYS = 30;
 
         /// <summary>
-        /// Calculate obat status based on stok and expired date.
-        /// Priority: Expired (critical) > SoonToExpire > LowStock > Available (default)
-        /// Boundary: SoonToExpire is 0 < days < 30 (strict: 30 days is still Available)
+        /// State rule definition untuk table-driven approach
         /// </summary>
+        private class StateRule
+        {
+            public string Status { get; set; }
+            public StatusObat StatusEnum { get; set; }
+            public int Priority { get; set; } // Semakin tinggi, semakin diutamakan
+            public Color DisplayColor { get; set; }
+            public Func<int, DateTime, bool> EvaluateCondition { get; set; } // (stok, expiredDate) => bool
+            public string Description { get; set; }
+        }
+
+        
+        /// Tabel rules untuk semua status obat - ini adalah "state machine table"
+        /// Diurutkan berdasarkan priority (descending) untuk evaluasi yang benar
+       
+        private static readonly List<StateRule> StateRulesTable = new List<StateRule>
+        {
+            // Priority 1 (CRITICAL): Expired - harus tidak dijual
+            new StateRule
+            {
+                Status = "Expired",
+                StatusEnum = StatusObat.Expired,
+                Priority = 4,
+                DisplayColor = Color.FromArgb(255, 200, 200), // Red
+                EvaluateCondition = (stok, expiredDate) => 
+                    expiredDate.Date < DateTime.Now.Date,
+                Description = "Obat sudah kadaluarsa dan tidak boleh dijual"
+            },
+
+            // Priority 2: SoonToExpire - akan segera kadaluarsa (0 < days < 30)
+            new StateRule
+            {
+                Status = "SoonToExpire",
+                StatusEnum = StatusObat.SoonToExpire,
+                Priority = 3,
+                DisplayColor = Color.FromArgb(255, 165, 0), // Orange
+                EvaluateCondition = (stok, expiredDate) =>
+                {
+                    int daysUntilExpire = (int)(expiredDate.Date - DateTime.Now.Date).TotalDays;
+                    return daysUntilExpire > 0 && daysUntilExpire < SOON_TO_EXPIRE_DAYS;
+                },
+                Description = "Obat akan kadaluarsa dalam waktu 30 hari"
+            },
+
+            // Priority 3: LowStock - stok rendah, perlu reorder
+            new StateRule
+            {
+                Status = "LowStock",
+                StatusEnum = StatusObat.LowStock,
+                Priority = 2,
+                DisplayColor = Color.FromArgb(255, 255, 200), // Yellow
+                EvaluateCondition = (stok, expiredDate) =>
+                    stok <= LOW_STOCK_THRESHOLD,
+                Description = "Stok obat rendah dan perlu dilakukan reorder"
+            },
+
+            // Priority 4 (DEFAULT): Available - kondisi normal dan aman
+            new StateRule
+            {
+                Status = "Available",
+                StatusEnum = StatusObat.Available,
+                Priority = 1,
+                DisplayColor = Color.FromArgb(200, 255, 200), // Green
+                EvaluateCondition = (stok, expiredDate) =>
+                    true, // Catch-all - selalu match sebagai default
+                Description = "Obat tersedia dan dalam kondisi normal"
+            }
+        };
+
+        // Pre-compute sorted table by priority untuk faster lookup
+        private static readonly List<StateRule> SortedRulesTable = 
+            StateRulesTable.OrderByDescending(r => r.Priority).ToList();
+
+        // Lookup tables untuk O(1) color dan enum access
+        private static readonly Dictionary<string, Color> ColorLookup = 
+            StateRulesTable.ToDictionary(r => r.Status.ToLower(), r => r.DisplayColor);
+
+        private static readonly Dictionary<string, StatusObat> EnumLookup =
+            StateRulesTable.ToDictionary(r => r.Status.ToLower(), r => r.StatusEnum);
+
+       
         public static string CalculateStatus(int stok, DateTime expiredDate)
         {
             try
@@ -37,20 +117,16 @@ namespace TubesKPL
                     return "Available";
                 }
 
-                // Priority 1: Expired (CRITICAL - must not be sold)
-                if (expiredDate.Date < DateTime.Now.Date)
-                    return "Expired";
+                // Table-driven evaluation: iterate rules dalam priority order
+                foreach (var rule in SortedRulesTable)
+                {
+                    if (rule.EvaluateCondition(stok, expiredDate))
+                    {
+                        return rule.Status; // Return status dari rule yang match pertama
+                    }
+                }
 
-                // Priority 2: SoonToExpire (strict boundary: 0 < days < 30)
-                int daysUntilExpire = (int)(expiredDate.Date - DateTime.Now.Date).TotalDays;
-                if (daysUntilExpire > 0 && daysUntilExpire < SOON_TO_EXPIRE_DAYS)
-                    return "SoonToExpire";
-
-                // Priority 3: LowStock (needs reorder)
-                if (stok <= LOW_STOCK_THRESHOLD)
-                    return "LowStock";
-
-                // Priority 4: Available (default - safe)
+                // Should not reach here, tapi sebagai safety fallback
                 return "Available";
             }
             catch (Exception ex)
@@ -60,10 +136,10 @@ namespace TubesKPL
             }
         }
 
-        /// <summary>
-        /// Get UI color for status.
-        /// Defensive: invalid status returns safe green color.
-        /// </summary>
+        
+        /// Get UI color for status menggunakan table lookup.
+        /// O(1) lookup dari ColorLookup dictionary.
+       
         public static Color GetStatusColor(string status)
         {
             try
@@ -71,17 +147,15 @@ namespace TubesKPL
                 if (string.IsNullOrWhiteSpace(status))
                     return Color.FromArgb(200, 255, 200); // Green (safe default)
 
-                switch (status.ToLower())
+                string statusLower = status.ToLower();
+
+                // Table lookup: O(1) access
+                if (ColorLookup.TryGetValue(statusLower, out var color))
                 {
-                    case "expired":
-                        return Color.FromArgb(255, 200, 200); // Red
-                    case "soontoexpire":
-                        return Color.FromArgb(255, 165, 0); // Orange
-                    case "lowstock":
-                        return Color.FromArgb(255, 255, 200); // Yellow
-                    default:
-                        return Color.FromArgb(200, 255, 200); // Green
+                    return color;
                 }
+
+                return Color.FromArgb(200, 255, 200); // Green (safe default untuk unknown status)
             }
             catch (Exception ex)
             {
@@ -90,10 +164,10 @@ namespace TubesKPL
             }
         }
 
-        /// <summary>
-        /// Convert string status to enum.
-        /// Defensive: invalid input returns Available (safe default).
-        /// </summary>
+        
+        /// Convert string status to enum menggunakan table lookup.
+       
+     
         public static StatusObat GetStatusEnum(string statusString)
         {
             try
@@ -101,19 +175,15 @@ namespace TubesKPL
                 if (string.IsNullOrEmpty(statusString))
                     return StatusObat.Available;
 
-                switch (statusString.ToLower())
+                string statusLower = statusString.ToLower();
+
+                // Table lookup: O(1) access
+                if (EnumLookup.TryGetValue(statusLower, out var statusEnum))
                 {
-                    case "available":
-                        return StatusObat.Available;
-                    case "soontoexpire":
-                        return StatusObat.SoonToExpire;
-                    case "lowstock":
-                        return StatusObat.LowStock;
-                    case "expired":
-                        return StatusObat.Expired;
-                    default:
-                        return StatusObat.Available;
+                    return statusEnum;
                 }
+
+                return StatusObat.Available;
             }
             catch (Exception ex)
             {
@@ -122,10 +192,10 @@ namespace TubesKPL
             }
         }
 
-        /// <summary>
-        /// Update status for all obat in list.
-        /// Error in one item does not stop processing others.
-        /// </summary>
+        
+        /// Update status untuk semua obat dalam list.
+        /// Error di satu item tidak menghentikan processing item lainnya.
+        
         public static void UpdateAllStatus(List<Obat> obatList)
         {
             try
@@ -149,6 +219,7 @@ namespace TubesKPL
 
                     try
                     {
+                        // Gunakan table-driven CalculateStatus
                         string statusStr = CalculateStatus(obat.Stok, obat.ExpiredDate);
                         obat.Status = GetStatusEnum(statusStr);
                         successCount++;
@@ -170,9 +241,9 @@ namespace TubesKPL
         }
 
         /// <summary>
-        /// Get count summary of obat by status.
+        /// Get count summary obat berdasarkan status menggunakan table-driven evaluation.
         /// </summary>
-        public static void GetStatusSummary(List<Obat> obatList, out int available, 
+        public static void GetStatusSummary(List<Obat> obatList, out int available,
             out int lowStock, out int expired, out int soonToExpire)
         {
             available = lowStock = expired = soonToExpire = 0;
@@ -189,21 +260,28 @@ namespace TubesKPL
 
                     try
                     {
+                        // Gunakan table-driven CalculateStatus
                         string status = CalculateStatus(obat.Stok, obat.ExpiredDate);
-                        switch (status)
+
+                        // Map status ke counter - menggunakan table untuk konsistensi
+                        var matchingRule = StateRulesTable.FirstOrDefault(r => r.Status == status);
+                        if (matchingRule != null)
                         {
-                            case "Expired":
-                                expired++;
-                                break;
-                            case "SoonToExpire":
-                                soonToExpire++;
-                                break;
-                            case "LowStock":
-                                lowStock++;
-                                break;
-                            default:
-                                available++;
-                                break;
+                            switch (matchingRule.Status)
+                            {
+                                case "Expired":
+                                    expired++;
+                                    break;
+                                case "SoonToExpire":
+                                    soonToExpire++;
+                                    break;
+                                case "LowStock":
+                                    lowStock++;
+                                    break;
+                                case "Available":
+                                    available++;
+                                    break;
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -218,5 +296,19 @@ namespace TubesKPL
                 Console.WriteLine($"[ERROR] GetStatusSummary failed: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Debug helper: print all state rules untuk verification
+        /// </summary>
+        public static void PrintStateRulesTable()
+        {
+            Console.WriteLine("");
+            foreach (var rule in StateRulesTable.OrderByDescending(r => r.Priority))
+            {
+                Console.WriteLine($"[Priority {rule.Priority}] {rule.Status}: {rule.Description}");
+            }
+            Console.WriteLine("\n");
+        }
     }
 }
+
