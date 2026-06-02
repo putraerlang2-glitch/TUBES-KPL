@@ -1,17 +1,17 @@
-using System;
+﻿using System;
 
 namespace TubesKPL
 {
-    // Menyimpan nilai pengaturan pajak dan diskon yang bisa diubah saat aplikasi berjalan.
+    // [LANGGA - RUNTIME CONFIGURATOR]
     public static class RuntimeConfig
     {
-        // Pajak PPN bawaan adalah 11%.
+        // Default Pajak PPN 11%
         public static decimal PajakPPN { get; set; } = 0.11m;
 
-        // Diskon bawaan adalah 0%.
+        // Default Diskon 0%
         public static decimal DiskonAktif { get; set; } = 0.00m;
 
-        // Menyimpan perubahan nilai pajak dan diskon baru ke dalam sistem.
+        // Method untuk mengubah nilai saat aplikasi berjalan (Runtime)
         public static void UpdateConfig(decimal pajakBaru, decimal diskonBaru)
         {
             PajakPPN = pajakBaru;

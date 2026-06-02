@@ -1,0 +1,388 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                   🎬 CARA MENJALANKAN SISTEM - STEP BY STEP                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📌 OVERVIEW
+═══════════════════════════════════════════════════════════════════════════════════
+
+Sistem terdiri dari 2 project yang harus running bersama:
+  1. TubesKPL (WinForms Client)         - Desktop UI
+  2. ObatAPI (.NET 6 Web API Server)    - Backend REST API
+
+⏱️ WAKTU SETUP: ~2-3 menit
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 METODE 1: RUN DARI VISUAL STUDIO (RECOMMENDED - TERMUDAH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Buka Solution
+─────────────────────────────────────────────────────────────────────────────
+1. Buka Visual Studio 2026
+2. File → Open → Project/Solution
+3. Navigate ke: C:\Users\YONDEV\source\repos\TUBES-KPL-ayondev\
+4. Select: TUBES-KPL-ayondev.sln
+5. Klik Open
+
+
+STEP 2: Setup Multiple Startup Projects
+─────────────────────────────────────────────────────────────────────────────
+Ini PENTING agar API dan Client jalannya bersama!
+
+1. Right-click pada "Solution 'TUBES-KPL-ayondev'" di Solution Explorer
+
+   [Screenshot reference]
+   Solution Explorer (tab di kiri)
+   ├── Solution 'TUBES-KPL-ayondev'  ← Right-click di sini
+   ├── TubesKPL
+   └── ObatAPI
+
+
+2. Klik "Set Startup Projects..."
+
+   Akan muncul dialog box
+
+3. Pilih opsi "Multiple startup projects"
+
+   Dialog:
+   ┌─────────────────────────────────────────┐
+   │ Set Startup Projects                    │
+   │                                         │
+   │ ◯ Current Page                          │
+   │ ◯ Single Startup Project                │
+   │ ◉ Multiple startup projects  ← SELECT  │
+   │                                         │
+   │ [  OK  ] [  Cancel  ]                   │
+   └─────────────────────────────────────────┘
+
+4. Di area bawah, set Action untuk setiap project:
+
+   Project              Action
+   ─────────────────────────────────────────
+   TubesKPL             Start  ← Ubah ke "Start"
+   ObatAPI              Start  ← Ubah ke "Start"
+
+   Caranya: Click di kolom "Action", pilih dari dropdown
+
+5. PENTING: Set ORDER agar API start dulu!
+
+   Move Up/Down buttons untuk reorder:
+   1. ObatAPI (start first)      ← Harus nomer 1
+   2. TubesKPL (start second)    ← Harus nomer 2
+
+   Ini penting supaya API sudah ready sebelum Client try connect!
+
+6. Klik OK
+
+
+STEP 3: Build Solution
+─────────────────────────────────────────────────────────────────────────────
+1. Press: Ctrl + Shift + B
+
+   Atau: Build → Build Solution
+
+2. Tunggu sampai selesai. Output harus:
+
+   ========== Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+   ✓ Ini artinya BERHASIL!
+
+3. Jika ada error:
+   - Lihat detail error di Error List window
+   - Debug dan fix
+   - Retry Build
+
+
+STEP 4: Run Aplikasi
+─────────────────────────────────────────────────────────────────────────────
+1. Press: F5 (atau Ctrl+F5 untuk run without debugging)
+
+   Atau: Debug → Start Debugging
+
+2. Tunggu 5-10 detik...
+
+3. Seharusnya 2 windows terbuka:
+
+   Window 1: Console/Terminal (API Server)
+   ├─ Warna: Hitam dengan text putih
+   ├─ Menampilkan:
+   │  info: Microsoft.Hosting.Lifetime[0]
+   │        Now listening on: https://localhost:7103
+   │        Press CTRL+C to shut down.
+   └─ ✓ Ini GOOD - API running!
+
+   Window 2: WinForms Application (Client)
+   ├─ Judul: "Apotek - Avail: X | Low: Y | Expired: Z"
+   ├─ Menampilkan: DataGridView dengan obat list
+   └─ ✓ Ini GOOD - Client running!
+
+
+STEP 5: Verify Sistem Berjalan
+─────────────────────────────────────────────────────────────────────────────
+1. ✓ Console window menampilkan "[MAIN FORM] Fetching data from API..."
+2. ✓ Console window menampilkan "[MAIN FORM] Received 3 items from API"
+3. ✓ WinForms window menampilkan table dengan data
+4. ✓ No error messages/pop-ups
+5. ✓ Title bar menampilkan statistik
+
+
+STEP 6: Test Basic Features
+─────────────────────────────────────────────────────────────────────────────
+1. SEARCH TEST
+   └─ Type "Paracetamol" di search box
+   └─ Klik "Cari"
+   └─ ✓ Hasil filter
+
+2. ADD TEST
+   └─ Klik "Tambah"
+   └─ Isi form (Nama: Test, Kategori, Stok: 10, Harga: 5000)
+   └─ Klik Simpan
+   └─ ✓ Muncul di table
+
+3. DELETE TEST
+   └─ Select row yang baru dibuat
+   └─ Klik "Hapus"
+   └─ Confirm: Yes
+   └─ ✓ Hilang dari table
+
+STEP 7: Stop Aplikasi
+─────────────────────────────────────────────────────────────────────────────
+1. Tekan Shift+F5 (Stop Debugging)
+   atau Ctrl+Alt+Break
+
+2. Kedua windows akan tertutup
+
+3. ✓ Done!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 METODE 2: RUN DARI TERMINAL/POWERSHELL (ADVANCED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Berguna jika prefer command line atau troubleshooting.
+
+STEP 1: Buka PowerShell (Administrator)
+─────────────────────────────────────────────────────────────────────────────
+1. Press: Win + X
+2. Klik: Windows PowerShell (Admin)
+3. atau: Win + S → type "powershell" → Right-click "Run as Administrator"
+
+
+STEP 2: Navigate ke Solution Directory
+─────────────────────────────────────────────────────────────────────────────
+```powershell
+cd C:\Users\YONDEV\source\repos\TUBES-KPL-ayondev
+```
+
+Verify:
+```powershell
+ls
+```
+
+Harus nampak:
+```
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----           ... ObatAPI
+d-----           ... TubesKPL
+-a----           ... TUBES-KPL-ayondev.sln
+```
+
+
+STEP 3: Terminal 1 - Start API Server
+─────────────────────────────────────────────────────────────────────────────
+```powershell
+cd ObatAPI
+dotnet run
+```
+
+Expected output:
+```
+Building...
+info: Microsoft.Hosting.Lifetime[14]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Now listening on: https://localhost:7103
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting will shutdown when aborting is complete.
+```
+
+✓ API running! Jangan close terminal ini.
+
+
+STEP 4: Terminal 2 - Start WinForms Client (NEW WINDOW)
+─────────────────────────────────────────────────────────────────────────────
+Buka PowerShell window BARU:
+
+```powershell
+cd C:\Users\YONDEV\source\repos\TUBES-KPL-ayondev\TubesKPL
+# Build project
+dotnet build
+
+# Run project
+dotnet run
+```
+
+atau gunakan Visual Studio:
+- Press F5 di Visual Studio
+
+
+STEP 5: Verify
+─────────────────────────────────────────────────────────────────────────────
+Terminal 1 (API Server):
+✓ "Now listening on: https://localhost:7103"
+
+Terminal 2 (atau Visual Studio):
+✓ WinForms app terbuka
+✓ DataGridView menampilkan obat
+
+STEP 6: Stop
+─────────────────────────────────────────────────────────────────────────────
+Terminal 1: Press Ctrl+C untuk stop API
+Terminal 2: Close WinForms window
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 TEST SWAGGER (OPTIONAL - untuk debug API)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Jika ingin test API endpoints langsung sebelum running client:
+
+STEP 1: Start API Server (lihat Metode 2, STEP 3)
+
+STEP 2: Buka browser
+─────────────────────────────────────────────────────────────────────────────
+URL: https://localhost:7103/swagger/index.html
+
+
+STEP 3: Explore endpoints
+─────────────────────────────────────────────────────────────────────────────
+
+TRY IT OUT - GET all obat:
+1. Click expand "GET /api/obat"
+2. Klik "Try it out"
+3. Klik "Execute"
+4. Lihat response (seharusnya JSON array dengan 3 obat)
+
+TRY IT OUT - POST (tambah obat):
+1. Click expand "POST /api/obat"
+2. Klik "Try it out"
+3. Di "Request body", edit JSON:
+   {
+     "nama": "Test Obat",
+     "kategori": "Tablet",
+     "stok": 50,
+     "harga": 10000,
+     "expiredDate": "2025-12-31T23:59:59"
+   }
+4. Klik "Execute"
+5. Verify response dengan ID baru
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE 1: "The port 7103 is already in use"
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: Ada aplikasi lain yang sudah use port 7103
+
+FIX:
+1. Find what's using port 7103:
+   ```powershell
+   netstat -ano | findstr :7103
+   ```
+
+2. Note PID (Process ID)
+
+3. Kill process:
+   ```powershell
+   Stop-Process -Force -Id <PID>
+   ```
+
+4. Retry run aplikasi
+
+
+ISSUE 2: "API Connection Error - Connection timeout"
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: WinForms trying connect ke API tapi API belum start
+
+FIX:
+1. Pastikan ObatAPI start DULU (sebelum TubesKPL)
+2. Check console output API - pastikan "Now listening on: https://localhost:7103"
+3. Wait 2-3 seconds sebelum WinForms fully load
+4. Jika masih error, lihat INTEGRATION_GUIDE.md
+
+
+ISSUE 3: "The remote certificate is invalid"
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: HTTPS certificate self-signed di development
+
+FIX: Sudah di-handle di code, tapi jika masih error:
+1. Pastikan file ObatApiClient.cs punya line:
+   handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+2. Rebuild solution
+
+
+ISSUE 4: "Build failed - compile errors"
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: Missing dependencies atau typo
+
+FIX:
+1. Build → Clean Solution
+2. Build → Build Solution
+3. Check Error List window untuk detail error
+4. Lihat INTEGRATION_GUIDE.md Troubleshooting section
+
+
+ISSUE 5: WinForms show empty grid
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: Data tidak terload dari API
+
+FIX:
+1. Check API console untuk error
+2. Test Swagger: https://localhost:7103/swagger
+3. GET /api/obat harus return data
+4. Jika return empty, API database kosong - ini normal, akan show sample data
+
+
+ISSUE 6: Multiple Startup Projects tidak work
+─────────────────────────────────────────────────────────────────────────────
+CAUSE: Salah konfigurasi
+
+FIX:
+1. Right-click Solution → "Set Startup Projects..."
+2. Verify:
+   - "Multiple startup projects" selected
+   - ObatAPI: Action = "Start"
+   - TubesKPL: Action = "Start"
+   - ObatAPI order lebih tinggi (start dulu)
+3. Klik OK
+4. Retry F5
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CHECKLIST - SEBELUM MULAI DEVELOPMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ Visual Studio 2026 installed
+□ .NET 6 SDK installed (untuk ObatAPI)
+□ .NET Framework 4.7.2 installed (untuk TubesKPL)
+□ Solution bisa di-open tanpa error
+□ Build successful (semua project compile)
+□ Multiple Startup Projects configured correctly
+□ F5 bisa run tanpa crash
+□ Minimal 1 test scenario berhasil (bisa search, add, delete)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 NEXT: Testing & Verification
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Setelah aplikasi berhasil run:
+1. Baca: QUICKSTART.txt (untuk test checklist)
+2. Baca: INTEGRATION_GUIDE.md (untuk dokumentasi lengkap)
+
+Good luck! 🚀

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -40,13 +40,13 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
-            // Memperbarui status semua obat.
+            // Update status semua obat
             foreach (var obat in data)
             {
                 obat.UpdateStatus();
             }
 
-            // Menyiapkan tabel untuk menampilkan data obat.
+            // Buat DataTable untuk menampilkan data
             DataTable dt = new DataTable();
             dt.Columns.Add("Nama Obat");
             dt.Columns.Add("Stok");
@@ -62,7 +62,7 @@ namespace TubesKPL
 
             tblObat.DataSource = dt;
 
-            // Mewarnai baris tabel sesuai status obat.
+            // Terapkan warna berdasarkan status
             TerapkanWarnaStatus();
         }
 
@@ -96,7 +96,7 @@ namespace TubesKPL
             List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
             List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
 
-            // Menampilkan peringatan jika ada obat yang sudah kadaluarsa.
+            // Notifikasi obat expired
             if (obatExpired.Count > 0)
             {
                 string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
@@ -107,7 +107,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            // Menampilkan peringatan jika ada obat yang stoknya menipis.
+            // Notifikasi obat low stock
             if (obatLowStock.Count > 0)
             {
                 string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
@@ -118,7 +118,7 @@ namespace TubesKPL
                 MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            // Menampilkan jumlah obat berdasarkan status di judul aplikasi.
+            // Tampilkan statistik
             TampilkanStatistik();
         }
 

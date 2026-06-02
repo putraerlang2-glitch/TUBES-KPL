@@ -3,34 +3,71 @@ using System.Collections.Generic;
 
 namespace TubesKPL
 {
-    /// <summary>
-    /// Model untuk data obat yang bekerja dengan ObatAPI.
-    /// Status menggunakan Enum untuk type-safety.
-    /// </summary>
     public class Obat
     {
-        /// <summary>Nomor identitas obat</summary>
+        // ID unik dari server (untuk identifikasi dan update/delete)
         public int Id { get; set; }
 
-        /// <summary>Nama obat</summary>
+        // Nama obat
         public string Nama { get; set; } = string.Empty;
 
-        /// <summary>Kategori/tipe obat</summary>
+        // Kategori obat (string untuk API compatibility)
         public string Kategori { get; set; } = "Tablet";
 
-        /// <summary>Jumlah stok yang tersedia</summary>
+        // Jumlah stok
         public int Stok { get; set; }
 
-        /// <summary>Harga obat</summary>
+        // Harga per unit
         public decimal Harga { get; set; }
 
-        /// <summary>Tanggal kadaluarsa</summary>
+        // Tanggal kadaluarsa
         public DateTime ExpiredDate { get; set; }
 
-        /// <summary>Status obat (Available, LowStock, Expired, SoonToExpire)</summary>
-        public StatusObat Status { get; set; } = StatusObat.Available;
+        // Status obat (Available, LowStock, Expired) - string format dari API
+        public string Status { get; set; } = "Available";
 
-        /// <summary>Kategori obat dalam bentuk enum</summary>
+        // ============================================
+        // BACKWARD COMPATIBILITY ALIASES (lowercase)
+        // ============================================
+
+        // Alias lowercase untuk 'Nama' - digunakan di banyak tempat dalam UI
+        public string nama
+        {
+            get { return Nama; }
+            set { Nama = value; }
+        }
+
+        // Alias lowercase untuk 'Stok' - digunakan di banyak tempat dalam UI
+        public int stok
+        {
+            get { return Stok; }
+            set { Stok = value; }
+        }
+
+        // Alias lowercase untuk 'Harga' - digunakan di banyak tempat dalam UI
+        public decimal harga
+        {
+            get { return Harga; }
+            set { Harga = value; }
+        }
+
+        // Alias lowercase untuk 'ExpiredDate' - digunakan di banyak tempat dalam UI
+        public DateTime expiredDate
+        {
+            get { return ExpiredDate; }
+            set { ExpiredDate = value; }
+        }
+
+        // Alias status sebagai enum untuk kompatibilitas dengan kode lama
+        // Digunakan di ObatApiService.cs untuk convert status string ke enum
+        public StatusObat status
+        {
+            get { return GetStatusEnum(); }
+            set { Status = value.ToString(); }
+        }
+
+        // Alias kategori sebagai enum untuk kompatibilitas dengan kode lama
+        // Digunakan di FormTambahObat.cs, JsonDataManager.cs, dan file UI lainnya
         public KategoriObat kategori
         {
             get
@@ -47,7 +84,11 @@ namespace TubesKPL
             set { Kategori = value.ToString(); }
         }
 
-        /// <summary>Konstruktor kosong</summary>
+        // ============================================
+        // KONSTRUKTOR
+        // ============================================
+
+        // Konstruktor default (untuk JSON parsing/deserialization dari API)
         public Obat()
         {
             Id = 0;
@@ -56,10 +97,11 @@ namespace TubesKPL
             Stok = 0;
             Harga = 0;
             ExpiredDate = DateTime.Now.AddYears(1);
-            Status = StatusObat.Available;
+            Status = "Available";
         }
 
-        /// <summary>Konstruktor dengan kategori teks</summary>
+        // Konstruktor untuk membuat obat baru dari UI atau data lama
+        // Parameter: nama, stok, harga, expiredDate, kategori (default "Tablet")
         public Obat(string nama, int stok, decimal harga, DateTime expiredDate, string kategori = "Tablet", int id = 0)
         {
             Id = id;
@@ -68,11 +110,11 @@ namespace TubesKPL
             Harga = harga;
             ExpiredDate = expiredDate;
             Kategori = kategori ?? "Tablet";
-            Status = StatusObat.Available;
+            Status = "Available";
             UpdateStatus();
         }
 
-        /// <summary>Konstruktor dengan kategori enum</summary>
+        // Konstruktor dengan enum kategori - masih digunakan di FormTambahObat.cs
         public Obat(string nama, int stok, decimal harga, DateTime expiredDate, KategoriObat kategoriEnum, int id = 0)
         {
             Id = id;
@@ -81,86 +123,83 @@ namespace TubesKPL
             Harga = harga;
             ExpiredDate = expiredDate;
             Kategori = kategoriEnum.ToString();
-            Status = StatusObat.Available;
+            Status = "Available";
             UpdateStatus();
         }
 
-        /// <summary>Perbarui status obat berdasarkan stok dan tanggal kadaluarsa</summary>
+        // ============================================
+        // HELPER METHODS
+        // ============================================
+
+        // Update status berdasarkan stok dan tanggal expired
+        // Logika:
+        // 1. Jika expired -> "Expired"
+        // 2. Jika stok <= 5 -> "LowStock"
+        // 3. Else -> "Available"
         public void UpdateStatus()
         {
-            const int LOW_STOCK_THRESHOLD = 5;
-            const int SOON_TO_EXPIRE_DAYS = 30;
-
-            var today = DateTime.Now.Date;
-
-            if (ExpiredDate.Date < today)
+            if (ExpiredDate < DateTime.Now)
             {
-                Status = StatusObat.Expired;
+                Status = "Expired";
+            }
+            else if (Stok <= 5)
+            {
+                Status = "LowStock";
             }
             else
             {
-                int daysUntilExpire = (int)(ExpiredDate.Date - today).TotalDays;
-                if (daysUntilExpire > 0 && daysUntilExpire < SOON_TO_EXPIRE_DAYS)
-                {
-                    Status = StatusObat.SoonToExpire;
-                }
-                else if (Stok <= LOW_STOCK_THRESHOLD)
-                {
-                    Status = StatusObat.LowStock;
-                }
-                else
-                {
-                    Status = StatusObat.Available;
-                }
+                Status = "Available";
             }
         }
 
-        /// <summary>Tampilkan data obat dalam satu baris</summary>
+        // Convert string status ke StatusObat enum
+        // Untuk kompatibilitas dengan kode lama yang menggunakan enum
+        public StatusObat GetStatusEnum()
+        {
+            switch (Status?.ToLower())
+            {
+                case "lowstock":
+                    return StatusObat.LowStock;
+                case "expired":
+                    return StatusObat.Expired;
+                default:
+                    return StatusObat.Available;
+            }
+        }
+
+        // Override ToString untuk debugging dan logging
         public override string ToString()
         {
             return $"[{Id}] {Nama} | Stok: {Stok} | Status: {Status} | Exp: {ExpiredDate:yyyy-MM-dd}";
         }
     }
 
-    /// <summary>
-    /// Enum untuk status obat
-    /// </summary>
+    // ============================================
+    // ENUM UNTUK STATUS
+    // ============================================
+
+    // StatusObat enum untuk status obat (Available, LowStock, Expired)
+    // Bisa di-convert dari Status string menggunakan GetStatusEnum()
     public enum StatusObat
     {
-        /// <summary>Obat tersedia dengan stok normal</summary>
-        Available = 0,
-
-        /// <summary>Obat memiliki stok rendah (di bawah 5)</summary>
-        LowStock = 1,
-
-        /// <summary>Obat telah melewati tanggal kadaluarsa</summary>
-        Expired = 2,
-
-        /// <summary>Obat akan kadaluarsa dalam 30 hari ke depan</summary>
-        SoonToExpire = 3
+        Available,
+        LowStock,
+        Expired
     }
 
-    /// <summary>
-    /// Enum untuk kategori obat
-    /// </summary>
+    // ============================================
+    // ENUM UNTUK KATEGORI
+    // ============================================
+
+    // KategoriObat enum untuk tipe-tipe obat
+    // Digunakan di UI form dan JsonDataManager untuk backward compatibility
     public enum KategoriObat
     {
-        /// <summary>Obat tablet</summary>
-        Tablet = 0,
-
-        /// <summary>Obat salep</summary>
-        Salep = 1,
-
-        /// <summary>Obat sirup</summary>
-        Sirup = 2,
-
-        /// <summary>Suplemen vitamin</summary>
-        Vitamin = 3,
-
-        /// <summary>Obat antibiotik</summary>
-        Antibiotik = 4,
-
-        /// <summary>Obat anti jamur</summary>
-        AntiJamur = 5
+        Tablet,
+        Salep,
+        Sirup,
+        Vitamin,
+        Antibiotik,
+        AntiJamur
     }
 }
