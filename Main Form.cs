@@ -98,9 +98,10 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
+            // Update status untuk setiap obat menggunakan StateMachine
             foreach (var obat in data)
             {
-                obat.UpdateStatus();
+                StateMachine.EvaluateStatus(obat);
             }
 
             DataTable dt = new DataTable();
@@ -131,58 +132,22 @@ namespace TubesKPL
 
         private void TerapkanWarnaStatus()
         {
-            for (int i = 0; i < tblObat.Rows.Count; i++)
-            {
-                string status = tblObat.Rows[i].Cells[5].Value?.ToString();
-
-                DataGridViewRow row = tblObat.Rows[i];
-
-                if (status == "Expired")
-                {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200);
-                }
-                else if (status == "LowStock")
-                {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200);
-                }
-                else
-                {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200);
-                }
-            }
+            // Gunakan StateMachine untuk apply colors
+            StateMachine.ApplyStatusColors(tblObat, statusColumnIndex: 5);
         }
 
         private void TampilkanNotifikasi()
         {
-            var obatExpired = daftarObat
-                .Where(o => o.Status == "Expired")
-                .ToList();
-
-            if (obatExpired.Count > 0)
-            {
-                string pesan =
-                    "⚠️ PERINGATAN: Obat expired:\n" +
-                    string.Join("\n", obatExpired.Select(o => "- " + o.Nama));
-
-                MessageBox.Show(
-                    pesan,
-                    "Obat Expired",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-            }
-
+            // Gunakan StateMachine untuk show notifications
+            StateMachine.ShowNotifications(daftarObat);
             TampilkanStatistik();
         }
 
         private void TampilkanStatistik()
         {
-            int available = daftarObat.Count(o => o.Status == "Available");
-            int low = daftarObat.Count(o => o.Status == "LowStock");
-            int expired = daftarObat.Count(o => o.Status == "Expired");
-
-            this.Text =
-                $"Apotek - Avail: {available} | Low: {low} | Expired: {expired}";
+            // Gunakan StateMachine untuk format title dengan stats
+            string baseTitle = "Apotek";
+            this.Text = StateMachine.FormatTitleWithStats(baseTitle, daftarObat);
         }
 
         private void button1_Click(object sender, EventArgs e)
