@@ -501,6 +501,71 @@ namespace TubesKPL
             return str.Replace("\\\"", "\"").Replace("\\\\", "\\");
         }
 
+        /// <summary>
+        /// Ambil status rules dari API (table-driven configuration)
+        /// GET /api/obat/status/rules
+        /// Digunakan untuk sync configuration antara server dan client
+        /// </summary>
+        public async Task<dynamic> GetStatusRulesAsync()
+        {
+            try
+            {
+                string url = $"{_baseUrl}/api/obat/status/rules";
+                System.Console.WriteLine($"[API CLIENT] GET {url}");
+
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    System.Console.WriteLine($"[API CLIENT] Status Rules Response received");
+
+                    // Return JSON string untuk parsing di client
+                    // Client dapat cache ini jika diperlukan
+                    return json;
+                }
+                else
+                {
+                    throw new Exception($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[WARN] Error fetching status rules: {ex.Message}");
+                // Non-fatal - client dapat menggunakan default rules dari ObatStatusConfiguration
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Ambil ringkasan status dari API
+        /// GET /api/obat/status/summary
+        /// </summary>
+        public async Task<dynamic> GetStatusSummaryAsync()
+        {
+            try
+            {
+                string url = $"{_baseUrl}/api/obat/status/summary";
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    System.Console.WriteLine($"[API CLIENT] Status Summary: {json}");
+                    return json;
+                }
+                else
+                {
+                    throw new Exception($"API Error: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"[WARN] Error fetching status summary: {ex.Message}");
+                return null;
+            }
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();
