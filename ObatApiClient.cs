@@ -11,7 +11,7 @@ namespace TubesKPL
     /// Menggunakan manual JSON parsing (sama seperti JsonDataManager)
     /// 
     /// API Server: ObatAPI (.NET 6) - project terpisah
-    /// Base URL: https://localhost:7103 (default HTTPS untuk .NET 6)
+    /// Base URL: https://localhost:7245 (default HTTPS untuk .NET 6)
     /// 
     /// ⚠️ PENTING: 
     /// - Pastikan ObatAPI sudah running sebelum TubesKPL
@@ -28,13 +28,13 @@ namespace TubesKPL
     ///   "status": "Available"
     /// }
     /// </summary>
-    public class ObatApiClient
+    public class ObatApiClient : IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
         // Default port untuk ASP.NET Core 6 development
-        public ObatApiClient(string baseUrl = "https://localhost:7103")
+        public ObatApiClient(string baseUrl = "https://localhost:7245")
         {
             _baseUrl = baseUrl;
 
@@ -199,6 +199,70 @@ namespace TubesKPL
         }
 
         /// <summary>
+        /// Checkout Transaksi Kasir ke API
+        /// POST /api/transaksi
+        /// </summary>
+        public async Task<bool> CheckoutTransaksiAsync(TransaksiDTO transaksi)
+        {
+            try
+            {
+                string url = $"{_baseUrl}/api/transaksi";
+                
+                // Fix untuk error budaya (koma vs titik) pada decimal di JSON
+                string FormatDec(decimal val) => val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+                StringBuilder sb = new StringBuilder();
+                sb.Append("{");
+                sb.Append($"\"noStruk\":\"{EscapeJsonString(transaksi.NoStruk)}\",");
+                sb.Append($"\"tanggalTransaksi\":\"{transaksi.TanggalTransaksi:yyyy-MM-ddTHH:mm:ss}\",");
+                sb.Append($"\"subtotal\":{FormatDec(transaksi.Subtotal)},");
+                sb.Append($"\"persentaseDiskon\":{FormatDec(transaksi.PersentaseDiskon)},");
+                sb.Append($"\"nominalDiskon\":{FormatDec(transaksi.NominalDiskon)},");
+                sb.Append($"\"persentasePajak\":{FormatDec(transaksi.PersentasePajak)},");
+                sb.Append($"\"nominalPajak\":{FormatDec(transaksi.NominalPajak)},");
+                sb.Append($"\"totalAkhir\":{FormatDec(transaksi.TotalAkhir)},");
+                sb.Append($"\"uangBayar\":{FormatDec(transaksi.UangBayar)},");
+                sb.Append($"\"uangKembalian\":{FormatDec(transaksi.UangKembalian)},");
+                
+                sb.Append("\"detailList\":[");
+                for (int i = 0; i < transaksi.DetailList.Count; i++)
+                {
+                    var detail = transaksi.DetailList[i];
+                    sb.Append("{");
+                    sb.Append($"\"obatId\":{detail.ObatId},");
+                    sb.Append($"\"jumlah\":{detail.Jumlah},");
+                    sb.Append($"\"hargaSatuan\":{FormatDec(detail.HargaSatuan)},");
+                    sb.Append($"\"subtotal\":{FormatDec(detail.Subtotal)}");
+                    sb.Append("}");
+                    
+                    if (i < transaksi.DetailList.Count - 1)
+                        sb.Append(",");
+                }
+                sb.Append("]");
+                sb.Append("}");
+                
+                string json = sb.ToString();
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    string errorMsg = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"API Error: {response.StatusCode} - {errorMsg}");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checkout transaksi: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// Helper: Parse JSON array ke List<Obat>
         /// Format: [{"id":1,"nama":"...", ...}, ...]
         /// </summary>
@@ -355,7 +419,7 @@ namespace TubesKPL
             sb.Append($"\"nama\":\"{EscapeJsonString(obat.Nama)}\",");
             sb.Append($"\"kategori\":\"{EscapeJsonString(obat.Kategori)}\",");
             sb.Append($"\"stok\":{obat.Stok},");
-            sb.Append($"\"harga\":{obat.Harga},");
+            sb.Append($"\"harga\":{obat.Harga.ToString(System.Globalization.CultureInfo.InvariantCulture)},");
             sb.Append($"\"expiredDate\":\"{obat.ExpiredDate:yyyy-MM-ddTHH:mm:ss}\"");
             sb.Append("}");
             return sb.ToString();
@@ -570,5 +634,31 @@ namespace TubesKPL
         {
             _httpClient?.Dispose();
         }
+    }
+
+    public class TransaksiDTO
+    {
+        public string NoStruk { get; set; } = string.Empty;
+        public DateTime TanggalTransaksi { get; set; }
+        
+        public decimal Subtotal { get; set; }
+        public decimal PersentaseDiskon { get; set; }
+        public decimal NominalDiskon { get; set; }
+        public decimal PersentasePajak { get; set; }
+        public decimal NominalPajak { get; set; }
+        public decimal TotalAkhir { get; set; }
+        
+        public decimal UangBayar { get; set; }
+        public decimal UangKembalian { get; set; }
+
+        public List<TransaksiDetailDTO> DetailList { get; set; } = new List<TransaksiDetailDTO>();
+    }
+
+    public class TransaksiDetailDTO
+    {
+        public int ObatId { get; set; }
+        public int Jumlah { get; set; }
+        public decimal HargaSatuan { get; set; }
+        public decimal Subtotal { get; set; }
     }
 }
