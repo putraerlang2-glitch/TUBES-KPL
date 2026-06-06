@@ -115,17 +115,12 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="data.json" />
-    <None Include="IMPLEMENTATION-CHECKLIST.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="App.config" />
-    <None Include="SETUP-MYSQL-LARAGON.md" />
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Content Include="database-script.sql" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

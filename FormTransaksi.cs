@@ -70,7 +70,7 @@ namespace TubesKPL
         }
 
         // TOMBOL BAYAR / HITUNG
-        private void BtnHitung_Click(object sender, EventArgs e)
+        private async void BtnHitung_Click(object sender, EventArgs e)
         {
             if (keranjang.Count == 0)
             {
@@ -106,21 +106,62 @@ namespace TubesKPL
 
             decimal kembalian = uangBayar - grandTotal;
 
-            // 4. Update Stok Obat
-            foreach (var item in keranjang)
+            // 4. Kirim Data Transaksi ke MySQL via API
+            try
             {
-                item.obat.stok -= item.jumlah;
-                item.obat.UpdateStatus();
+                var dto = new TransaksiDTO
+                {
+                    NoStruk = "TRX-" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+                    TanggalTransaksi = DateTime.Now,
+                    Subtotal = subtotal,
+                    PersentaseDiskon = RuntimeConfig.DiskonAktif * 100m,
+                    NominalDiskon = nominalDiskon,
+                    PersentasePajak = RuntimeConfig.PajakPPN * 100m,
+                    NominalPajak = nominalPajak,
+                    TotalAkhir = grandTotal,
+                    UangBayar = uangBayar,
+                    UangKembalian = kembalian
+                };
+
+                foreach (var item in keranjang)
+                {
+                    dto.DetailList.Add(new TransaksiDetailDTO
+                    {
+                        ObatId = item.obat.Id,
+                        Jumlah = item.jumlah,
+                        HargaSatuan = item.obat.harga,
+                        Subtotal = item.Subtotal()
+                    });
+                }
+
+                // Call API
+                using (var client = new ObatApiClient("https://localhost:7245"))
+                {
+                    await client.CheckoutTransaksiAsync(dto);
+                }
+
+                // Update Stok Obat di memory lokal (karena sukses di server)
+                foreach (var item in keranjang)
+                {
+                    item.obat.stok -= item.jumlah;
+                    item.obat.UpdateStatus();
+                }
+
+                // 5. Panggil CODE REUSE (Cetak Struk)
+                StrukGenerator.GenerateStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
+
+                MessageBox.Show("Transaksi Berhasil disimpan ke MySQL!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // 6. Bersihkan Keranjang
+                keranjang.Clear();
+                RefreshKeranjang();
+                mainform.RefreshData();
+                TBUangBayar.Clear();
             }
-
-            // 5. Panggil CODE REUSE (Cetak Struk)
-            StrukGenerator.GenerateStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
-
-            // 6. Bersihkan Keranjang
-            keranjang.Clear();
-            RefreshKeranjang();
-            mainform.RefreshData();
-            TBUangBayar.Clear();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Transaksi Gagal:\n{ex.Message}", "Error API", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void RefreshKeranjang()

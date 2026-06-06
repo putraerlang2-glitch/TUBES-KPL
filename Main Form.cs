@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -46,7 +46,7 @@ namespace TubesKPL
 
             try
             {
-                client = new ObatApiClient("https://localhost:7103");
+                client = new ObatApiClient("https://localhost:7245");
 
                 Console.WriteLine("[MAIN FORM] Fetching data from API...");
 
@@ -168,20 +168,32 @@ namespace TubesKPL
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
             FormTambahObat formTambah = new FormTambahObat();
 
             if (formTambah.ShowDialog() == DialogResult.OK)
             {
-                daftarObat.Add(formTambah.obatBaru);
+                try
+                {
+                    using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
+                    {
+                        var obatBaru = await client.AddObatAsync(formTambah.obatBaru);
+                        daftarObat.Add(obatBaru);
 
-                TampilkanData(daftarObat);
-                TampilkanStatistik();
+                        TampilkanData(daftarObat);
+                        TampilkanStatistik();
+                        MessageBox.Show("Obat berhasil disimpan ke Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Gagal menyimpan ke database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        private void btnUpdate_Click(object sender, EventArgs e)
+        private async void btnUpdate_Click(object sender, EventArgs e)
         {
             if (tblObat.CurrentRow == null)
             {
@@ -209,30 +221,68 @@ namespace TubesKPL
 
             if (f2.ShowDialog() == DialogResult.OK)
             {
-                TampilkanData(daftarObat);
-                TampilkanStatistik();
+                try
+                {
+                    using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
+                    {
+                        // Update to API
+                        var updatedObat = await client.UpdateObatAsync(selectedObat.Id, selectedObat);
+                        daftarObat[selectedIndex] = updatedObat;
+
+                        TampilkanData(daftarObat);
+                        TampilkanStatistik();
+                        MessageBox.Show("Obat berhasil diubah di Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Gagal merubah data di database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        private void btnHapus_Click(object sender, EventArgs e)
+        private async void btnHapus_Click(object sender, EventArgs e)
         {
             if (tblObat.CurrentRow != null)
             {
-                string nama =
-                    tblObat.CurrentRow.Cells[0].Value.ToString();
+                int selectedIndex = tblObat.CurrentRow.Index;
+                if (selectedIndex < 0 || selectedIndex >= daftarObat.Count) return;
+
+                Obat selectedObat = daftarObat[selectedIndex];
+                string nama = selectedObat.Nama;
 
                 if (
                     MessageBox.Show(
-                        $"Hapus {nama}?",
+                        $"Hapus {nama} dari database secara permanen?",
                         "Konfirmasi",
-                        MessageBoxButtons.YesNo
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning
                     ) == DialogResult.Yes
                 )
                 {
-                    daftarObat.RemoveAll(o => o.Nama == nama);
+                    try
+                    {
+                        using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
+                        {
+                            bool sukses = await client.DeleteObatAsync(selectedObat.Id);
+                            if (sukses)
+                            {
+                                daftarObat.RemoveAt(selectedIndex);
 
-                    TampilkanData(daftarObat);
-                    TampilkanStatistik();
+                                TampilkanData(daftarObat);
+                                TampilkanStatistik();
+                                MessageBox.Show("Obat berhasil dihapus dari Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Gagal menghapus data dari server.", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Gagal menghapus dari database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }

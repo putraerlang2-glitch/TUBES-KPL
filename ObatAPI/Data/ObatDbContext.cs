@@ -19,6 +19,8 @@ namespace ObatAPI.Data
         /// DbSet untuk table Obat
         /// </summary>
         public DbSet<Obat> Obat { get; set; }
+        public DbSet<Transaksi> Transaksi { get; set; }
+        public DbSet<TransaksiDetail> TransaksiDetail { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,6 +94,61 @@ namespace ObatAPI.Data
 
                 entity.HasIndex(e => e.CreatedAt)
                     .HasDatabaseName("idx_created_at");
+            });
+
+            // =====================================================
+            // Configure Transaksi entity
+            // =====================================================
+            modelBuilder.Entity<Transaksi>(entity =>
+            {
+                entity.ToTable("transaksi");
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.NoStruk).HasColumnName("no_struk").HasColumnType("VARCHAR(50)");
+                entity.Property(e => e.TanggalTransaksi).HasColumnName("tanggal_transaksi").HasColumnType("DATETIME");
+                
+                entity.Property(e => e.Subtotal).HasColumnName("subtotal").HasPrecision(12, 2);
+                entity.Property(e => e.PersentaseDiskon).HasColumnName("persentase_diskon").HasPrecision(5, 2);
+                entity.Property(e => e.NominalDiskon).HasColumnName("nominal_diskon").HasPrecision(12, 2);
+                entity.Property(e => e.PersentasePajak).HasColumnName("persentase_pajak").HasPrecision(5, 2);
+                entity.Property(e => e.NominalPajak).HasColumnName("nominal_pajak").HasPrecision(12, 2);
+                entity.Property(e => e.TotalAkhir).HasColumnName("total_akhir").HasPrecision(12, 2);
+                
+                entity.Property(e => e.UangBayar).HasColumnName("uang_bayar").HasPrecision(12, 2);
+                entity.Property(e => e.UangKembalian).HasColumnName("uang_kembalian").HasPrecision(12, 2);
+                
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("TIMESTAMP")
+                      .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
+            });
+
+            // =====================================================
+            // Configure TransaksiDetail entity
+            // =====================================================
+            modelBuilder.Entity<TransaksiDetail>(entity =>
+            {
+                entity.ToTable("transaksi_detail");
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.TransaksiId).HasColumnName("transaksi_id");
+                entity.Property(e => e.ObatId).HasColumnName("obat_id");
+                
+                entity.Property(e => e.Jumlah).HasColumnName("jumlah");
+                entity.Property(e => e.HargaSatuan).HasColumnName("harga_satuan").HasPrecision(10, 2);
+                entity.Property(e => e.Subtotal).HasColumnName("subtotal").HasPrecision(12, 2);
+                
+                // Relasi ke Transaksi (One-to-Many)
+                entity.HasOne(d => d.Transaksi)
+                      .WithMany(p => p.DetailList)
+                      .HasForeignKey(d => d.TransaksiId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                // Relasi ke Obat (One-to-Many)
+                entity.HasOne(d => d.Obat)
+                      .WithMany()
+                      .HasForeignKey(d => d.ObatId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
 
