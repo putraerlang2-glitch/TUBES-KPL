@@ -2,44 +2,39 @@ using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using ObatAPI.Data;
 using ObatAPI.Models;
+using ObatAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =====================================================
-// Add services to the container
-// =====================================================
-
-// Add Controllers
 builder.Services.AddControllers();
-
-// Add Swagger untuk API documentation & testing
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS untuk allow WinForms client (localhost) 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowLocalhost", policyBuilder =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policyBuilder.WithOrigins("http://localhost", "https://localhost", "http://127.0.0.1", "https://127.0.0.1")
+                     .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                     .WithHeaders("Content-Type", "Authorization");
     });
 });
 
-// =====================================================
-// Setup Entity Framework Core dengan MySQL
-// =====================================================
-// Connection string untuk MySQL Laragon (default: localhost, user: root, no password)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=localhost;Port=3306;Database=tubes_kpl;Uid=root;Pwd=;";
+builder.Services.AddScoped<IObatStatusService, ObatStatusService>();
+builder.Services.AddScoped<IObatSeederService, ObatSeederService>();
 
-// Configure DbContext untuk MySQL menggunakan Pomelo provider
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured. Set it in appsettings.json or environment variable.");
+}
+
 builder.Services.AddDbContext<ObatDbContext>(options =>
 {
     options.UseMySql(
         connectionString,
-        new MySqlServerVersion(new Version(8, 4, 8)), // MySQL 8.4.8 di Laragon
+        new MySqlServerVersion(new Version(8, 4, 8)),
         mysqlOptions =>
         {
             mysqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
@@ -48,9 +43,6 @@ builder.Services.AddDbContext<ObatDbContext>(options =>
     );
 });
 
-// =====================================================
-// Logging
-// =====================================================
 builder.Services.AddLogging(config =>
 {
     config.AddConsole();
@@ -59,38 +51,18 @@ builder.Services.AddLogging(config =>
 
 var app = builder.Build();
 
-// =====================================================
-// Database Initialization & Migrations
-// =====================================================
 try
 {
     using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ObatDbContext>();
+        var seederService = scope.ServiceProvider.GetRequiredService<IObatSeederService>();
 
-        // Apply migrations automatically
         Console.WriteLine("[DB] Applying EF Core migrations...");
         dbContext.Database.Migrate();
         Console.WriteLine("[DB] Migrations applied successfully!");
 
-        // Seed sample data if database is empty
-        if (!dbContext.Obat.Any())
-        {
-            Console.WriteLine("[DB] Seeding sample data...");
-            var sampleData = new List<Obat>
-            {
-                new Obat { Nama = "Paracetamol", Kategori = "Tablet", Stok = 100, Harga = 5000, ExpiredDate = DateTime.Now.AddYears(1), Status = "Available" },
-                new Obat { Nama = "Ibuprofen", Kategori = "Tablet", Stok = 12, Harga = 7000, ExpiredDate = DateTime.Now.AddMonths(6), Status = "Available" },
-                new Obat { Nama = "Sanmol", Kategori = "Sirup", Stok = 15, Harga = 3000, ExpiredDate = DateTime.Now.AddMonths(4), Status = "Available" },
-                new Obat { Nama = "HRIG", Kategori = "Injeksi", Stok = 12, Harga = 20000, ExpiredDate = DateTime.Now.AddMonths(2), Status = "Available" },
-                new Obat { Nama = "Amoxicillin", Kategori = "Tablet", Stok = 5, Harga = 10000, ExpiredDate = DateTime.Now.AddMonths(6), Status = "LowStock" },
-                new Obat { Nama = "Vitamin C", Kategori = "Tablet", Stok = 0, Harga = 500, ExpiredDate = DateTime.Now.AddDays(-1), Status = "Expired" }
-            };
-
-            dbContext.Obat.AddRange(sampleData);
-            dbContext.SaveChanges();
-            Console.WriteLine($"[DB] {sampleData.Count} sample records seeded!");
-        }
+        await seederService.SeedDatabaseAsync(dbContext);
     }
 }
 catch (Exception ex)
@@ -99,9 +71,6 @@ catch (Exception ex)
     Console.WriteLine(ex.StackTrace);
 }
 
-// =====================================================
-// Configure the HTTP request pipeline
-// =====================================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -109,11 +78,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowAll");
-
+app.UseCors("AllowLocalhost");
 app.UseAuthorization();
-
 app.MapControllers();
 
 Console.WriteLine("[APP] ObatAPI starting on https://localhost:7103");

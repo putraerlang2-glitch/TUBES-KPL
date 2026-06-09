@@ -1,633 +1,379 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace TubesKPL
 {
-    /// <summary>
-    /// ObatApiClient adalah HTTP client untuk komunikasi dengan ObatAPI
-    /// Menggunakan manual JSON parsing (sama seperti JsonDataManager)
-    /// 
-    /// API Server: ObatAPI (.NET 6) - project terpisah
-    /// Base URL: https://localhost:7245 (default HTTPS untuk .NET 6)
-    /// 
-    /// ⚠️ PENTING: 
-    /// - Pastikan ObatAPI sudah running sebelum TubesKPL
-    /// - Jalankan set Multiple Startup Projects
-    /// 
-    /// API Response Format (dari server .NET 6):
-    /// {
-    ///   "id": 1,
-    ///   "nama": "Paracetamol",
-    ///   "kategori": "Tablet",
-    ///   "stok": 100,
-    ///   "harga": 5000,
-    ///   "expiredDate": "2025-01-15T00:00:00",
-    ///   "status": "Available"
-    /// }
-    /// </summary>
+    /// <summary>HTTP client for ObatAPI backend service</summary>
     public class ObatApiClient : IDisposable
     {
+        private const string DefaultBaseUrl = "https://localhost:7245";
+        private const int DefaultTimeoutSeconds = 10;
+
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
-        // Default port untuk ASP.NET Core 6 development
-        public ObatApiClient(string baseUrl = "https://localhost:7245")
+        public ObatApiClient(string baseUrl = DefaultBaseUrl)
         {
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentException("Base URL cannot be empty", nameof(baseUrl));
+
             _baseUrl = baseUrl;
 
-            // Allow self-signed certificate untuk development HTTPS
             var handler = new HttpClientHandler();
-            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+            handler.ServerCertificateCustomValidationCallback = ValidateCertificate;
 
             _httpClient = new HttpClient(handler);
-            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+            _httpClient.Timeout = TimeSpan.FromSeconds(DefaultTimeoutSeconds);
         }
 
-        /// <summary>
-        /// Ambil semua data obat dari API ObatAPI
-        /// GET /api/obat
-        /// </summary>
+        private bool ValidateCertificate(HttpRequestMessage message, System.Security.Cryptography.X509Certificates.X509Certificate2 cert, 
+            System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors errors)
+        {
+            if (errors == System.Net.Security.SslPolicyErrors.None)
+                return true;
+
+            // Accept self-signed certs only for localhost development
+            return _baseUrl.Contains("localhost") || _baseUrl.Contains("127.0.0.1");
+        }
+
         public async Task<List<Obat>> GetAllObatAsync()
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat";
-                System.Console.WriteLine($"[API CLIENT] GET {url}");
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat");
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"HTTP {response.StatusCode}");
 
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine($"[API CLIENT] Response: {json.Substring(0, Math.Min(100, json.Length))}...");
-
-                    List<Obat> obatList = ParseObatListFromJson(json);
-                    System.Console.WriteLine($"[API CLIENT] Parsed {obatList.Count} items");
-
-                    return obatList ?? new List<Obat>();
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+                var json = await response.Content.ReadAsStringAsync();
+                return ParseObatListFromJson(json) ?? new List<Obat>();
             }
-            catch (HttpRequestException ex)
+            catch (TaskCanceledException)
             {
-                throw new Exception($"HTTP Error: {ex.Message}\nPastikan ObatAPI sudah running di {_baseUrl}", ex);
-            }
-            catch (TaskCanceledException ex)
-            {
-                throw new Exception($"Connection Timeout: {ex.Message}\nObatAPI server tidak merespons", ex);
+                throw new Exception("API connection timeout");
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error fetching obat data: {ex.Message}", ex);
+                throw new Exception($"Failed to fetch medicines: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Ambil obat berdasarkan ID
-        /// GET /api/obat/{id}
-        /// </summary>
         public async Task<Obat> GetObatByIdAsync(int id)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                if (id <= 0)
+                    throw new ArgumentException("ID must be positive");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(json);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    throw new Exception($"Obat dengan ID {id} tidak ditemukan");
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/{id}");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    throw new Exception($"Medicine not found");
+
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"HTTP {response.StatusCode}");
+
+                var json = await response.Content.ReadAsStringAsync();
+                return ParseObatFromJson(json);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error fetching obat: {ex.Message}", ex);
+                throw new Exception($"Failed to fetch medicine: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Tambah obat baru ke API
-        /// POST /api/obat
-        /// </summary>
         public async Task<Obat> AddObatAsync(Obat obat)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat";
-                string json = SerializeObat(obat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                if (obat == null)
+                    throw new ArgumentNullException(nameof(obat));
 
-                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                var json = SerializeObat(obat);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/obat", content);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseJson = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(responseJson);
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"HTTP {response.StatusCode}");
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                return ParseObatFromJson(responseJson);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error adding obat: {ex.Message}", ex);
+                throw new Exception($"Failed to add medicine: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Update obat di API
-        /// PUT /api/obat/{id}
-        /// </summary>
         public async Task<Obat> UpdateObatAsync(int id, Obat obat)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                string json = SerializeObat(obat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                if (id <= 0 || obat == null)
+                    throw new ArgumentException("Invalid parameters");
 
-                HttpResponseMessage response = await _httpClient.PutAsync(url, content);
+                var json = SerializeObat(obat);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"{_baseUrl}/api/obat/{id}", content);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseJson = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(responseJson);
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"HTTP {response.StatusCode}");
+
+                var responseJson = await response.Content.ReadAsStringAsync();
+                return ParseObatFromJson(responseJson);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error updating obat: {ex.Message}", ex);
+                throw new Exception($"Failed to update medicine: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Hapus obat dari API
-        /// DELETE /api/obat/{id}
-        /// </summary>
         public async Task<bool> DeleteObatAsync(int id)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                HttpResponseMessage response = await _httpClient.DeleteAsync(url);
+                if (id <= 0)
+                    throw new ArgumentException("ID must be positive");
 
+                var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/obat/{id}");
                 return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error deleting obat: {ex.Message}", ex);
+                throw new Exception($"Failed to delete medicine: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Checkout Transaksi Kasir ke API
-        /// POST /api/transaksi
-        /// </summary>
         public async Task<bool> CheckoutTransaksiAsync(TransaksiDTO transaksi)
         {
             try
             {
-                string url = $"{_baseUrl}/api/transaksi";
-                
-                // Fix untuk error budaya (koma vs titik) pada decimal di JSON
-                string FormatDec(decimal val) => val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (transaksi?.DetailList?.Count == 0)
+                    throw new ArgumentException("Transaction data required");
 
-                StringBuilder sb = new StringBuilder();
-                sb.Append("{");
-                sb.Append($"\"noStruk\":\"{EscapeJsonString(transaksi.NoStruk)}\",");
-                sb.Append($"\"tanggalTransaksi\":\"{transaksi.TanggalTransaksi:yyyy-MM-ddTHH:mm:ss}\",");
-                sb.Append($"\"subtotal\":{FormatDec(transaksi.Subtotal)},");
-                sb.Append($"\"persentaseDiskon\":{FormatDec(transaksi.PersentaseDiskon)},");
-                sb.Append($"\"nominalDiskon\":{FormatDec(transaksi.NominalDiskon)},");
-                sb.Append($"\"persentasePajak\":{FormatDec(transaksi.PersentasePajak)},");
-                sb.Append($"\"nominalPajak\":{FormatDec(transaksi.NominalPajak)},");
-                sb.Append($"\"totalAkhir\":{FormatDec(transaksi.TotalAkhir)},");
-                sb.Append($"\"uangBayar\":{FormatDec(transaksi.UangBayar)},");
-                sb.Append($"\"uangKembalian\":{FormatDec(transaksi.UangKembalian)},");
-                
-                sb.Append("\"detailList\":[");
-                for (int i = 0; i < transaksi.DetailList.Count; i++)
-                {
-                    var detail = transaksi.DetailList[i];
-                    sb.Append("{");
-                    sb.Append($"\"obatId\":{detail.ObatId},");
-                    sb.Append($"\"jumlah\":{detail.Jumlah},");
-                    sb.Append($"\"hargaSatuan\":{FormatDec(detail.HargaSatuan)},");
-                    sb.Append($"\"subtotal\":{FormatDec(detail.Subtotal)}");
-                    sb.Append("}");
-                    
-                    if (i < transaksi.DetailList.Count - 1)
-                        sb.Append(",");
-                }
-                sb.Append("]");
-                sb.Append("}");
-                
-                string json = sb.ToString();
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var json = SerializeTransaksi(transaksi);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/transaksi", content);
 
-                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"HTTP {response.StatusCode}");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                else
-                {
-                    string errorMsg = await response.Content.ReadAsStringAsync();
-                    throw new Exception($"API Error: {response.StatusCode} - {errorMsg}");
-                }
+                return true;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error checkout transaksi: {ex.Message}", ex);
+                throw new Exception($"Failed to process transaction: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Helper: Parse JSON array ke List<Obat>
-        /// Format: [{"id":1,"nama":"...", ...}, ...]
-        /// </summary>
+        public async Task<string> GetStatusRulesAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/rules");
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null;
+            }
+            catch { return null; }
+        }
+
+        public async Task<string> GetStatusSummaryAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/summary");
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null;
+            }
+            catch { return null; }
+        }
+
         private List<Obat> ParseObatListFromJson(string json)
         {
-            List<Obat> result = new List<Obat>();
+            var result = new List<Obat>();
+            if (string.IsNullOrEmpty(json)) return result;
 
             try
             {
-                // Remove whitespace
                 json = json.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+                int start = json.IndexOf("[");
+                int end = json.LastIndexOf("]");
 
-                // Find array brackets [ ... ]
-                int arrayStart = json.IndexOf("[");
-                int arrayEnd = json.LastIndexOf("]");
-
-                if (arrayStart == -1 || arrayEnd == -1 || arrayStart >= arrayEnd)
-                {
+                if (start == -1 || end == -1 || start >= end)
                     return result;
-                }
 
-                string arrayContent = json.Substring(arrayStart + 1, arrayEnd - arrayStart - 1);
+                string content = json.Substring(start + 1, end - start - 1);
+                int pos = 0;
 
-                // Parse setiap object dalam array
-                int currentPos = 0;
-                while (currentPos < arrayContent.Length)
+                while (pos < content.Length)
                 {
-                    int objStart = arrayContent.IndexOf("{", currentPos);
+                    int objStart = content.IndexOf("{", pos);
                     if (objStart == -1) break;
 
-                    int objEnd = FindMatchingBracket(arrayContent, objStart);
+                    int objEnd = FindClosingBracket(content, objStart);
                     if (objEnd == -1) break;
 
-                    string objContent = arrayContent.Substring(objStart + 1, objEnd - objStart - 1);
-                    Obat obat = ParseObatObject(objContent);
+                    var obat = ParseObatObject(content.Substring(objStart + 1, objEnd - objStart - 1));
+                    if (obat != null) result.Add(obat);
 
-                    if (obat != null)
-                    {
-                        result.Add(obat);
-                    }
-
-                    currentPos = objEnd + 1;
+                    pos = objEnd + 1;
                 }
+            }
+            catch { }
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[ERROR] ParseObatListFromJson: {ex.Message}");
-                return result;
-            }
+            return result;
         }
 
-        /// <summary>
-        /// Helper: Parse single JSON object ke Obat
-        /// </summary>
         private Obat ParseObatFromJson(string json)
         {
+            if (string.IsNullOrEmpty(json)) return null;
+
             try
             {
                 json = json.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+                int start = json.IndexOf("{");
+                int end = FindClosingBracket(json, start);
 
-                int objStart = json.IndexOf("{");
-                int objEnd = FindMatchingBracket(json, objStart);
+                if (start == -1 || end == -1) return null;
 
-                if (objStart == -1 || objEnd == -1)
-                {
-                    return null;
-                }
-
-                string objContent = json.Substring(objStart + 1, objEnd - objStart - 1);
-                return ParseObatObject(objContent);
+                return ParseObatObject(json.Substring(start + 1, end - start - 1));
             }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[ERROR] ParseObatFromJson: {ex.Message}");
-                return null;
-            }
+            catch { return null; }
         }
 
-        /// <summary>
-        /// Helper: Parse object content ke Obat instance
-        /// Menghandle response dari ASP.NET Core API dengan PascalCase properties
-        /// Content format: "id":1,"nama":"Paracetamol","kategori":"Tablet","stok":100,"harga":5000,"expiredDate":"2025-01-15","status":"Available"
-        /// </summary>
-        private Obat ParseObatObject(string objContent)
+        private Obat ParseObatObject(string content)
         {
             try
             {
-                // Parse ID
-                int id = ExtractIntValue(objContent, "\"id\"");
+                string nama = GetJsonStringValue(content, "nama");
+                if (string.IsNullOrEmpty(nama)) return null;
 
-                // Parse nama (required)
-                string nama = ExtractStringValue(objContent, "\"nama\"");
-                if (string.IsNullOrEmpty(nama)) 
-                    return null;
+                int id = GetJsonIntValue(content, "id");
+                int stok = GetJsonIntValue(content, "stok");
+                decimal harga = GetJsonDecimalValue(content, "harga");
+                string kategori = GetJsonStringValue(content, "kategori") ?? "Tablet";
+                string status = GetJsonStringValue(content, "status") ?? "Available";
+                string dateStr = GetJsonStringValue(content, "expiredDate");
 
-                // Parse stok
-                int stok = ExtractIntValue(objContent, "\"stok\"");
+                DateTime expiredDate = DateTime.Now.AddYears(1);
+                if (!string.IsNullOrEmpty(dateStr) && DateTime.TryParse(dateStr, out var parsed))
+                    expiredDate = parsed;
 
-                // Parse harga
-                decimal harga = ExtractDecimalValue(objContent, "\"harga\"");
-
-                // Parse expiredDate - API server return ISO format: "2025-01-15T00:00:00" atau "2025-01-15"
-                DateTime expiredDate = DateTime.Now.AddYears(1); // default 1 tahun dari sekarang
-                string dateStr = ExtractStringValue(objContent, "\"expiredDate\"");
-                if (!string.IsNullOrEmpty(dateStr))
-                {
-                    // Try parse dengan berbagai format ISO 8601
-                    if (DateTime.TryParse(dateStr, out DateTime parsed))
-                    {
-                        expiredDate = parsed;
-                    }
-                    else
-                    {
-                        System.Console.WriteLine($"[WARN] Could not parse date: {dateStr}");
-                    }
-                }
-
-                // Parse kategori (string dari API)
-                string kategori = ExtractStringValue(objContent, "\"kategori\"");
-                if (string.IsNullOrEmpty(kategori))
-                    kategori = "Tablet";
-
-                // Parse status (string dari API)
-                string status = ExtractStringValue(objContent, "\"status\"");
-                if (string.IsNullOrEmpty(status))
-                    status = "Available";
-
-                // Create Obat instance dengan ID
-                Obat obat = new Obat(nama, stok, harga, expiredDate, kategori, id)
-                {
-                    Status = status
-                };
-
-                System.Console.WriteLine($"[PARSE] Obat parsed: {obat}");
-                return obat;
+                return new Obat(nama, stok, harga, expiredDate, kategori, id) { Status = status };
             }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[ERROR] ParseObatObject: {ex.Message}");
-                return null;
-            }
+            catch { return null; }
         }
 
-        /// <summary>
-        /// Helper: Serialize Obat ke JSON string untuk POST/PUT
-        /// Format disesuaikan dengan API server (.NET 6)
-        /// </summary>
         private string SerializeObat(Obat obat)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            sb.Append($"\"nama\":\"{EscapeJsonString(obat.Nama)}\",");
-            sb.Append($"\"kategori\":\"{EscapeJsonString(obat.Kategori)}\",");
-            sb.Append($"\"stok\":{obat.Stok},");
-            sb.Append($"\"harga\":{obat.Harga.ToString(System.Globalization.CultureInfo.InvariantCulture)},");
-            sb.Append($"\"expiredDate\":\"{obat.ExpiredDate:yyyy-MM-ddTHH:mm:ss}\"");
-            sb.Append("}");
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                "{{\"nama\":\"{0}\",\"kategori\":\"{1}\",\"stok\":{2},\"harga\":{3},\"expiredDate\":\"{4:yyyy-MM-ddTHH:mm:ss}\"}}",
+                EscapeJson(obat.Nama), EscapeJson(obat.Kategori), obat.Stok, obat.Harga, obat.ExpiredDate);
+        }
+
+        private string SerializeTransaksi(TransaksiDTO transaksi)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("{\"noStruk\":\"").Append(EscapeJson(transaksi.NoStruk)).Append("\",");
+            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                "\"tanggalTransaksi\":\"{0:yyyy-MM-ddTHH:mm:ss}\",\"subtotal\":{1},",
+                transaksi.TanggalTransaksi, transaksi.Subtotal);
+            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                "\"persentaseDiskon\":{0},\"nominalDiskon\":{1},\"persentasePajak\":{2},\"nominalPajak\":{3},\"totalAkhir\":{4},",
+                transaksi.PersentaseDiskon, transaksi.NominalDiskon, transaksi.PersentasePajak, transaksi.NominalPajak, transaksi.TotalAkhir);
+            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                "\"uangBayar\":{0},\"uangKembalian\":{1},\"detailList\":[", transaksi.UangBayar, transaksi.UangKembalian);
+
+            for (int i = 0; i < transaksi.DetailList.Count; i++)
+            {
+                var detail = transaksi.DetailList[i];
+                if (i > 0) sb.Append(",");
+                sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture,
+                    "{{\"obatId\":{0},\"jumlah\":{1},\"hargaSatuan\":{2},\"subtotal\":{3}}}",
+                    detail.ObatId, detail.Jumlah, detail.HargaSatuan, detail.Subtotal);
+            }
+
+            sb.Append("]}");
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Helper: Extract string value dari JSON
-        /// Mendukung baik lowercase maupun PascalCase keys
-        /// </summary>
-        private string ExtractStringValue(string json, string key)
-        {
-            try
-            {
-                int keyPos = json.IndexOf(key, StringComparison.OrdinalIgnoreCase);
-                if (keyPos == -1) return string.Empty;
-
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return string.Empty;
-
-                int quoteStart = json.IndexOf("\"", colonPos);
-                if (quoteStart == -1) return string.Empty;
-
-                quoteStart++; // Move past the opening quote
-                int quoteEnd = json.IndexOf("\"", quoteStart);
-
-                if (quoteStart > 0 && quoteEnd > quoteStart)
-                {
-                    string value = json.Substring(quoteStart, quoteEnd - quoteStart);
-                    return UnescapeJsonString(value);
-                }
-
-                return string.Empty;
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Extract int value dari JSON
-        /// </summary>
-        private int ExtractIntValue(string json, string key)
-        {
-            try
-            {
-                int keyPos = json.IndexOf(key);
-                if (keyPos == -1) return 0;
-
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return 0;
-
-                int numberStart = colonPos + 1;
-                while (numberStart < json.Length && (json[numberStart] == ' ' || json[numberStart] == ':'))
-                    numberStart++;
-
-                int numberEnd = numberStart;
-                while (numberEnd < json.Length && char.IsDigit(json[numberEnd]))
-                    numberEnd++;
-
-                if (numberEnd > numberStart)
-                {
-                    string numStr = json.Substring(numberStart, numberEnd - numberStart);
-                    if (int.TryParse(numStr, out int result))
-                        return result;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Extract decimal value dari JSON
-        /// </summary>
-        private decimal ExtractDecimalValue(string json, string key)
-        {
-            try
-            {
-                int keyPos = json.IndexOf(key);
-                if (keyPos == -1) return 0;
-
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return 0;
-
-                int numberStart = colonPos + 1;
-                while (numberStart < json.Length && (json[numberStart] == ' ' || json[numberStart] == ':'))
-                    numberStart++;
-
-                int numberEnd = numberStart;
-                while (numberEnd < json.Length && (char.IsDigit(json[numberEnd]) || json[numberEnd] == '.'))
-                    numberEnd++;
-
-                if (numberEnd > numberStart)
-                {
-                    string numStr = json.Substring(numberStart, numberEnd - numberStart);
-                    if (decimal.TryParse(numStr, out decimal result))
-                        return result;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Find matching closing bracket
-        /// </summary>
-        private int FindMatchingBracket(string json, int openPos)
+        private int FindClosingBracket(string json, int openPos)
         {
             int count = 1;
             for (int i = openPos + 1; i < json.Length; i++)
             {
                 if (json[i] == '{') count++;
                 else if (json[i] == '}') count--;
-
                 if (count == 0) return i;
             }
             return -1;
         }
 
-        /// <summary>
-        /// Helper: Escape string untuk JSON
-        /// </summary>
-        private string EscapeJsonString(string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return str.Replace("\\", "\\\\").Replace("\"", "\\\"");
-        }
-
-        /// <summary>
-        /// Helper: Unescape string dari JSON
-        /// </summary>
-        private string UnescapeJsonString(string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return str.Replace("\\\"", "\"").Replace("\\\\", "\\");
-        }
-
-        /// <summary>
-        /// Ambil status rules dari API (table-driven configuration)
-        /// GET /api/obat/status/rules
-        /// Digunakan untuk sync configuration antara server dan client
-        /// </summary>
-        public async Task<dynamic> GetStatusRulesAsync()
+        private string GetJsonStringValue(string json, string key)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat/status/rules";
-                System.Console.WriteLine($"[API CLIENT] GET {url}");
+                int pos = json.IndexOf("\"" + key + "\"", StringComparison.OrdinalIgnoreCase);
+                if (pos == -1) return string.Empty;
 
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                int colonPos = json.IndexOf(":", pos);
+                if (colonPos == -1) return string.Empty;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine($"[API CLIENT] Status Rules Response received");
+                int quoteStart = json.IndexOf("\"", colonPos);
+                if (quoteStart == -1) return string.Empty;
 
-                    // Return JSON string untuk parsing di client
-                    // Client dapat cache ini jika diperlukan
-                    return json;
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+                int quoteEnd = json.IndexOf("\"", quoteStart + 1);
+                if (quoteEnd == -1) return string.Empty;
+
+                return json.Substring(quoteStart + 1, quoteEnd - quoteStart - 1);
             }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[WARN] Error fetching status rules: {ex.Message}");
-                // Non-fatal - client dapat menggunakan default rules dari ObatStatusConfiguration
-                return null;
-            }
+            catch { return string.Empty; }
         }
 
-        /// <summary>
-        /// Ambil ringkasan status dari API
-        /// GET /api/obat/status/summary
-        /// </summary>
-        public async Task<dynamic> GetStatusSummaryAsync()
+        private int GetJsonIntValue(string json, string key)
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat/status/summary";
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                int pos = json.IndexOf("\"" + key + "\"");
+                if (pos == -1) return 0;
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine($"[API CLIENT] Status Summary: {json}");
-                    return json;
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
+                int colonPos = json.IndexOf(":", pos);
+                if (colonPos == -1) return 0;
+
+                int start = colonPos + 1;
+                while (start < json.Length && (json[start] == ' ' || json[start] == ':')) start++;
+
+                int end = start;
+                while (end < json.Length && char.IsDigit(json[end])) end++;
+
+                return end > start && int.TryParse(json.Substring(start, end - start), out int result) ? result : 0;
             }
-            catch (Exception ex)
+            catch { return 0; }
+        }
+
+        private decimal GetJsonDecimalValue(string json, string key)
+        {
+            try
             {
-                System.Console.WriteLine($"[WARN] Error fetching status summary: {ex.Message}");
-                return null;
+                int pos = json.IndexOf("\"" + key + "\"");
+                if (pos == -1) return 0;
+
+                int colonPos = json.IndexOf(":", pos);
+                if (colonPos == -1) return 0;
+
+                int start = colonPos + 1;
+                while (start < json.Length && (json[start] == ' ' || json[start] == ':')) start++;
+
+                int end = start;
+                while (end < json.Length && (char.IsDigit(json[end]) || json[end] == '.')) end++;
+
+                return end > start && decimal.TryParse(json.Substring(start, end - start), out decimal result) ? result : 0;
             }
+            catch { return 0; }
+        }
+
+        private string EscapeJson(string str)
+        {
+            return string.IsNullOrEmpty(str) ? string.Empty : str.Replace("\\", "\\\\").Replace("\"", "\\\"");
         }
 
         public void Dispose()
@@ -640,14 +386,14 @@ namespace TubesKPL
     {
         public string NoStruk { get; set; } = string.Empty;
         public DateTime TanggalTransaksi { get; set; }
-        
+
         public decimal Subtotal { get; set; }
         public decimal PersentaseDiskon { get; set; }
         public decimal NominalDiskon { get; set; }
         public decimal PersentasePajak { get; set; }
         public decimal NominalPajak { get; set; }
         public decimal TotalAkhir { get; set; }
-        
+
         public decimal UangBayar { get; set; }
         public decimal UangKembalian { get; set; }
 

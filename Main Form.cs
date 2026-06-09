@@ -24,18 +24,16 @@ namespace TubesKPL
             TampilkanStatistik();
         }
 
-        /// <summary>
-        /// Sample data fallback jika API gagal
-        /// </summary>
+        // Fallback data jika API gagal
         private List<Obat> GetSampleData()
         {
             return new List<Obat>()
             {
-                new Obat("Paracetamol", 21, 5000, new DateTime(2025, 1, 15), "Tablet"),
-                new Obat("Ibuprofen", 12, 7000, new DateTime(2024, 7, 20), "Tablet"),
-                new Obat("Sanmol", 15, 3000, new DateTime(2025, 4, 5), "Sirup"),
-                new Obat("HRIG", 12, 20000, new DateTime(2024, 3, 10), "AntiJamur"),
-                new Obat("Influenza", 10, 2000, new DateTime(2025, 3, 15), "Tablet"),
+                new Obat("Paracetamol", 21, 5000, new DateTime(2025, 12, 15), "Tablet"),
+                new Obat("Ibuprofen", 12, 7000, new DateTime(2025, 11, 20), "Tablet"),
+                new Obat("Sanmol", 15, 3000, new DateTime(2025, 10, 5), "Sirup"),
+                new Obat("HRIG", 3, 20000, new DateTime(2025, 8, 10), "AntiJamur"),
+                new Obat("Influenza", 10, 2000, new DateTime(2025, 9, 15), "Tablet"),
                 new Obat("Vitamin C", 11, 500000, new DateTime(2026, 8, 1), "Vitamin")
             };
         }
@@ -98,7 +96,9 @@ namespace TubesKPL
 
         private void TampilkanData(List<Obat> data)
         {
-            // Update status untuk setiap obat menggunakan StateMachine
+            if (data == null || data.Count == 0)
+                return;
+
             foreach (var obat in data)
             {
                 StateMachine.EvaluateStatus(obat);
@@ -126,33 +126,35 @@ namespace TubesKPL
             }
 
             tblObat.DataSource = dt;
-
             TerapkanWarnaStatus();
         }
 
         private void TerapkanWarnaStatus()
         {
-            // Gunakan StateMachine untuk apply colors
-            StateMachine.ApplyStatusColors(tblObat, statusColumnIndex: 5);
+            StateMachine.ApplyStatusColors(tblObat, colIndex: 5);
         }
 
         private void TampilkanNotifikasi()
         {
-            // Gunakan StateMachine untuk show notifications
             StateMachine.ShowNotifications(daftarObat);
             TampilkanStatistik();
         }
 
         private void TampilkanStatistik()
         {
-            // Gunakan StateMachine untuk format title dengan stats
             string baseTitle = "Apotek";
             this.Text = StateMachine.FormatTitleWithStats(baseTitle, daftarObat);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string inputan = textBox1.Text.ToLower();
+            string inputan = textBox1.Text.ToLower().Trim();
+
+            if (string.IsNullOrEmpty(inputan))
+            {
+                TampilkanData(daftarObat);
+                return;
+            }
 
             var hasil = daftarObat
                 .Where(o => o.Nama.ToLower().Contains(inputan))
@@ -225,7 +227,6 @@ namespace TubesKPL
                 {
                     using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
                     {
-                        // Update to API
                         var updatedObat = await client.UpdateObatAsync(selectedObat.Id, selectedObat);
                         daftarObat[selectedIndex] = updatedObat;
 
