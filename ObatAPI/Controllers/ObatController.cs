@@ -9,7 +9,6 @@ namespace ObatAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class ObatController : ControllerBase
     {
         private readonly ObatDbContext _dbContext;
