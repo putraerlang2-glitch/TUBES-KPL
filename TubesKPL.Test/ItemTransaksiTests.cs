@@ -52,23 +52,17 @@ namespace TubesKPL.Test
         [Fact]
         public void Test_Haga0_hasilgratis0()
         {
-            //Arrange
-            var obat = new Obat(
-                "Vitamin C",
-                100,
-                0,
-                DateTime.Now.AddDays(30),
-                "Vitamin"
-                );
-
-            var item = new ItemTransaksi()
+            //Arrange & Act & Assert
+            Assert.Throws<ArgumentException>(() =>
             {
-                obat = obat,
-                jumlah = 10
-            };
-
-            decimal hasil = item.Subtotal();
-            Assert.Equal(0, hasil);
+                var obat = new Obat(
+                    "Vitamin C",
+                    100,
+                    0,
+                    DateTime.Now.AddDays(30),
+                    "Vitamin"
+                );
+            });
         }
     }
 }

@@ -21,8 +21,8 @@ namespace TubesKPL
 
             foreach (var item in keranjang)
             {
-                sb.AppendLine(item.obat.nama);
-                sb.AppendLine($"{item.jumlah} x Rp {item.obat.harga:N0} = Rp {item.Subtotal():N0}");
+                sb.AppendLine(item.obat.Nama);
+                sb.AppendLine($"{item.jumlah} x Rp {item.obat.Harga:N0} = Rp {item.Subtotal():N0}");
             }
 
             sb.AppendLine("--------------------------------------");
