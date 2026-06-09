@@ -8,13 +8,11 @@ namespace TubesKPL
 {
     public static class StateMachine
     {
-        // ===== STATUS CONSTANTS =====
         public const string STATUS_EXPIRED = "Expired";
         public const string STATUS_LOW_STOCK = "LowStock";
         public const string STATUS_AVAILABLE = "Available";
         public const int LOW_STOCK_THRESHOLD = 5;
 
-        // ===== TABLE-DRIVEN STATUS CONFIGURATION =====
         private class StatusConfig
         {
             public string Name { get; set; }
@@ -44,14 +42,13 @@ namespace TubesKPL
             }
         };
 
-        // ===== STATUS EVALUATION (Table-Driven) =====
+
         public static void EvaluateStatus(Obat obat)
         {
             if (obat == null) return;
             obat.Status = StatusTable.First(cfg => cfg.Condition(obat)).Name;
         }
 
-        // ===== COLOR MAPPING (Table-Driven) =====
         public static Color GetStatusColor(string status)
         {
             return StatusTable.FirstOrDefault(cfg => cfg.Name == status)?.Color ?? Color.White;
@@ -68,7 +65,6 @@ namespace TubesKPL
             }
         }
 
-        // ===== STATUS AGGREGATION (Dictionary-Based Counter Table) =====
         public static void GetStatusCounts(List<Obat> list, out int available, out int lowStock, out int expired)
         {
             available = lowStock = expired = 0;
@@ -82,7 +78,6 @@ namespace TubesKPL
             }
         }
 
-        // ===== NOTIFICATIONS & DISPLAY =====
         public static void ShowNotifications(List<Obat> list)
         {
             GetStatusCounts(list, out _, out var low, out var exp);
