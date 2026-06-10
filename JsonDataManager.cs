@@ -2,230 +2,128 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using static TubesKPL.Obat;
 
 namespace TubesKPL
 {
+    // [KEEP IT SIMPLE] Minimal JSON parsing tanpa external dependencies
+    // [DESIGN PATTERN] Service Locator pattern untuk data persistence
     public static class JsonDataManager
     {
         private static string _defaultFilePath = "data.json";
 
-        public static void SetDataFilePath(string filePath)
-        {
-            _defaultFilePath = filePath;
-        }
+        public static void SetDataFilePath(string filePath) => _defaultFilePath = filePath;
 
+        // [KEEP IT SIMPLE] Load dari JSON file dengan minimal logic
         public static List<Obat> LoadFromJson()
         {
-            var result = new List<Obat>();
-
             try
             {
                 if (!File.Exists(_defaultFilePath))
-                    return result;
+                    return new List<Obat>();
 
-                string jsonContent = File.ReadAllText(_defaultFilePath, Encoding.UTF8);
-                result = ParseJsonToObatList(jsonContent);
-
-                return result;
-            }
-            catch (IOException ex)
-            {
-                Console.WriteLine($"[ERROR] Failed to read JSON file: {ex.Message}");
-                return result;
+                string json = File.ReadAllText(_defaultFilePath);
+                
+                // [KEEP IT SIMPLE] Extract obat array dari JSON
+                var items = new List<Obat>();
+                var matches = Regex.Matches(json, @"\{[^}]*""nama""[^}]*\}", RegexOptions.Singleline);
+                
+                foreach (Match match in matches)
+                {
+                    var obat = ParseObatObject(match.Value);
+                    if (obat != null)
+                        items.Add(obat);
+                }
+                
+                return items;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Unexpected error loading JSON: {ex.Message}");
-                return result;
+                Console.WriteLine($"[ERROR] Load JSON: {ex.Message}");
+                return new List<Obat>();
             }
         }
 
+        // [KEEP IT SIMPLE] Save ke JSON file
         public static bool SaveToJson(List<Obat> data)
         {
             try
             {
                 if (data == null)
-                {
-                    Console.WriteLine("[ERROR] Cannot save null data to JSON");
                     return false;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("{");
+                sb.AppendLine("  \"obat\": [");
+
+                for (int i = 0; i < data.Count; i++)
+                {
+                    var o = data[i];
+                    sb.Append("    {");
+                    sb.Append($"\"nama\": \"{Escape(o.Nama)}\", ");
+                    sb.Append($"\"stok\": {o.Stok}, ");
+                    sb.Append($"\"harga\": {o.Harga}, ");
+                    sb.Append($"\"expiredDate\": \"{o.ExpiredDate:yyyy-MM-dd}\", ");
+                    sb.Append($"\"kategori\": \"{o.Kategori}\"");
+                    sb.AppendLine(" }");
+                    
+                    if (i < data.Count - 1)
+                        sb.Insert(sb.Length - 1, ",");
                 }
 
-                string jsonContent = ConvertObatListToJson(data);
-                File.WriteAllText(_defaultFilePath, jsonContent, Encoding.UTF8);
+                sb.AppendLine("  ]");
+                sb.AppendLine("}");
+
+                File.WriteAllText(_defaultFilePath, sb.ToString(), Encoding.UTF8);
                 return true;
             }
-            catch (IOException ex)
-            {
-                Console.WriteLine($"[ERROR] Failed to write JSON file: {ex.Message}");
-                return false;
-            }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] Unexpected error saving JSON: {ex.Message}");
+                Console.WriteLine($"[ERROR] Save JSON: {ex.Message}");
                 return false;
             }
         }
 
-        private static List<Obat> ParseJsonToObatList(string jsonContent)
-        {
-            var result = new List<Obat>();
-
-            try
-            {
-                if (string.IsNullOrWhiteSpace(jsonContent))
-                    return result;
-
-                jsonContent = jsonContent.Replace("\n", "").Replace("\r", "").Replace("\t", "");
-
-                int arrayStart = jsonContent.IndexOf("\"obat\"");
-                if (arrayStart == -1)
-                    return result;
-
-                arrayStart = jsonContent.IndexOf("[", arrayStart);
-                int arrayEnd = jsonContent.LastIndexOf("]");
-
-                if (arrayStart == -1 || arrayEnd == -1 || arrayStart >= arrayEnd)
-                    return result;
-
-                string arrayContent = jsonContent.Substring(arrayStart + 1, arrayEnd - arrayStart - 1);
-                int currentPos = 0;
-
-                while (currentPos < arrayContent.Length)
-                {
-                    int objStart = arrayContent.IndexOf("{", currentPos);
-                    if (objStart == -1) break;
-
-                    int objEnd = arrayContent.IndexOf("}", objStart);
-                    if (objEnd == -1) break;
-
-                    var obat = ParseJsonObject(arrayContent.Substring(objStart + 1, objEnd - objStart - 1));
-                    if (obat != null)
-                        result.Add(obat);
-
-                    currentPos = objEnd + 1;
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] Failed to parse JSON array: {ex.Message}");
-                return result;
-            }
-        }
-
-        private static Obat ParseJsonObject(string objContent)
+        // [KEEP IT SIMPLE] Parse single JSON object to Obat
+        private static Obat ParseObatObject(string json)
         {
             try
             {
-                string nama = ExtractJsonField(objContent, "nama");
+                string nama = ExtractField(json, "nama");
                 if (string.IsNullOrEmpty(nama))
                     return null;
 
-                string stokStr = ExtractJsonField(objContent, "stok");
-                string hargaStr = ExtractJsonField(objContent, "harga");
-                string expiredDateStr = ExtractJsonField(objContent, "expiredDate");
-                string kategoriStr = ExtractJsonField(objContent, "kategori");
+                int stok = int.Parse(ExtractField(json, "stok"));
+                decimal harga = decimal.Parse(ExtractField(json, "harga"));
+                var expDate = DateTime.Parse(ExtractField(json, "expiredDate"));
+                var kategori = (KategoriObat)Enum.Parse(typeof(KategoriObat), ExtractField(json, "kategori"));
 
-                if (string.IsNullOrEmpty(stokStr) || string.IsNullOrEmpty(hargaStr) || 
-                    string.IsNullOrEmpty(expiredDateStr) || string.IsNullOrEmpty(kategoriStr))
-                    return null;
-
-                int stok = int.Parse(stokStr);
-                decimal harga = decimal.Parse(hargaStr);
-                DateTime expiredDate = DateTime.Parse(expiredDateStr);
-                var kategori = (KategoriObat)Enum.Parse(typeof(KategoriObat), kategoriStr);
-
-                return new Obat(nama, stok, harga, expiredDate, kategori);
+                return new Obat(nama, stok, harga, expDate, kategori);
             }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"[WARNING] Failed to parse JSON object: {ex.Message}");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] Unexpected error parsing JSON object: {ex.Message}");
-                return null;
-            }
+            catch { return null; }
         }
 
-        private static string ExtractJsonField(string content, string fieldName)
+        // [KEEP IT SIMPLE] Extract field value dari JSON
+        private static string ExtractField(string json, string fieldName)
         {
-            try
-            {
-                string searchPattern = "\"" + fieldName + "\":";
-                int fieldPos = content.IndexOf(searchPattern);
+            var pattern = $@"""{fieldName}""\s*:\s*""([^""]*)""";
+            var match = Regex.Match(json, pattern);
+            if (match.Success)
+                return match.Groups[1].Value;
 
-                if (fieldPos == -1)
-                    return "";
+            // Try numeric value (for stok, harga)
+            pattern = $@"""{fieldName}""\s*:\s*([0-9.]+)";
+            match = Regex.Match(json, pattern);
+            return match.Success ? match.Groups[1].Value : "";
+        }
 
-                int valueStart = fieldPos + searchPattern.Length;
-
-                while (valueStart < content.Length && (content[valueStart] == ' ' || content[valueStart] == '\t'))
-                    valueStart++;
-
-                if (content[valueStart] == '"')
-                {
-                    int valueEnd = content.IndexOf("\"", valueStart + 1);
-                    return valueEnd == -1 ? "" : content.Substring(valueStart + 1, valueEnd - valueStart - 1);
-                }
-                else
-                {
-                    int valueEnd = content.IndexOf(",", valueStart);
-                    if (valueEnd == -1)
-                        valueEnd = content.Length;
-                    return content.Substring(valueStart, valueEnd - valueStart).Trim();
-                }
-            }
-            catch
-            {
+        // [CLEAN CODE] Escape JSON special characters
+        private static string Escape(string text)
+        {
+            if (string.IsNullOrEmpty(text))
                 return "";
-            }
-        }
-
-        private static string ConvertObatListToJson(List<Obat> obatList)
-        {
-            var sb = new StringBuilder();
-
-            sb.Append("{\n");
-            sb.Append("  \"obat\": [\n");
-
-            for (int i = 0; i < obatList.Count; i++)
-            {
-                var obat = obatList[i];
-
-                sb.Append("    {\n");
-                sb.Append("      \"nama\": \"" + EscapeJsonString(obat.Nama) + "\",\n");
-                sb.Append("      \"stok\": " + obat.Stok + ",\n");
-                sb.Append("      \"harga\": " + obat.Harga + ",\n");
-                sb.Append("      \"expiredDate\": \"" + obat.ExpiredDate.ToString("yyyy-MM-dd") + "\",\n");
-                sb.Append("      \"kategori\": \"" + obat.Kategori + "\"\n");
-                sb.Append("    }");
-
-                if (i < obatList.Count - 1)
-                    sb.Append(",");
-
-                sb.Append("\n");
-            }
-
-            sb.Append("  ]\n");
-            sb.Append("}");
-            return sb.ToString();
-        }
-
-        private static string EscapeJsonString(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return "";
-
-            return input
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace("\n", "\\n")
-                .Replace("\r", "\\r")
-                .Replace("\t", "\\t");
+            return text.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n");
         }
     }
 }
