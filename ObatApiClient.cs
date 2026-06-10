@@ -5,15 +5,31 @@ using System.Threading.Tasks;
 
 namespace TubesKPL
 {
+    // ============================================================
+    // DESIGN PATTERN: HttpClient Wrapper + Factory Pattern
+    // ============================================================
+    // HttpClient Wrapper: Encapsulate HTTP communication logic
+    // Factory Pattern: Create Obat objects dari JSON response
+    // 
+    // BENEFIT:
+    // - Centralized HTTP communication (timeout, headers, etc.)
+    // - Easy to mock/test (dependency injection friendly)
+    // - Single place untuk error handling & logging
+    // - Reusable across multiple clients
+    // ============================================================
     /// <summary>HTTP client for ObatAPI backend service</summary>
-    public class ObatApiClient : IDisposable
+    public class ObatApiClient : IDisposable  // [SECURE CODE] IDisposable untuk cleanup resources
     {
+        // [SECURE CODE] Named constants untuk magic values (tidak hardcode di methods)
         private const string DefaultBaseUrl = "https://localhost:7245";
         private const int DefaultTimeoutSeconds = 10;
 
+        // [CLEAN CODE] Private fields untuk encapsulation
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
+        // [CLEAN CODE] Constructor dengan validation
+        // [SECURE CODE] Throw exception jika baseUrl invalid
         public ObatApiClient(string baseUrl = DefaultBaseUrl)
         {
             if (string.IsNullOrWhiteSpace(baseUrl))
@@ -21,13 +37,16 @@ namespace TubesKPL
 
             _baseUrl = baseUrl;
 
+            // [SECURE CODE] Custom certificate validation untuk self-signed cert di localhost
             var handler = new HttpClientHandler();
             handler.ServerCertificateCustomValidationCallback = ValidateCertificate;
 
             _httpClient = new HttpClient(handler);
-            _httpClient.Timeout = TimeSpan.FromSeconds(DefaultTimeoutSeconds);
+            _httpClient.Timeout = TimeSpan.FromSeconds(DefaultTimeoutSeconds);  // [STANDARD CODE] Prevent hanging requests
         }
 
+        // [SECURE CODE] Custom SSL validation: accept self-signed only for localhost
+        // [STANDARD CODE] Prevent MITM attacks di production (bukan localhost)
         private bool ValidateCertificate(HttpRequestMessage message, System.Security.Cryptography.X509Certificates.X509Certificate2 cert, 
             System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors errors)
         {
@@ -38,36 +57,49 @@ namespace TubesKPL
             return _baseUrl.Contains("localhost") || _baseUrl.Contains("127.0.0.1");
         }
 
+        // [METHOD] Get semua obat dari API
+        // [ASYNC PATTERN] Async/await untuk non-blocking I/O
+        // [SECURE CODE] Check HTTP status code sebelum parse response
+        // [CLEAN CODE] Null coalescing: return empty list jika null response
         public async Task<List<Obat>> GetAllObatAsync()
         {
             try
             {
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat");
+                // [SECURE CODE] Validate response status code
                 if (!response.IsSuccessStatusCode)
                     throw new HttpRequestException($"HTTP {response.StatusCode}");
 
                 var json = await response.Content.ReadAsStringAsync();
+                // [FACTORY PATTERN] ParseObatListFromJson = factory method untuk create Obat objects
                 return ParseObatListFromJson(json) ?? new List<Obat>();
             }
+            // [SECURE CODE] Specific exception handling untuk timeout
             catch (TaskCanceledException)
             {
                 throw new Exception("API connection timeout");
             }
             catch (Exception ex)
             {
+                // [CLEAN CODE] Wrap exception dengan context message
                 throw new Exception($"Failed to fetch medicines: {ex.Message}", ex);
             }
         }
 
+        // [METHOD] Get single obat by ID
+        // [SECURE CODE] Validate ID > 0
+        // [CLEAN CODE] Specific error handling untuk 404 Not Found
         public async Task<Obat> GetObatByIdAsync(int id)
         {
             try
             {
+                // [SECURE CODE] Guard clause: ID must be positive
                 if (id <= 0)
                     throw new ArgumentException("ID must be positive");
 
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/{id}");
 
+                // [CLEAN CODE] Specific check untuk 404
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     throw new Exception($"Medicine not found");
 
@@ -75,6 +107,7 @@ namespace TubesKPL
                     throw new HttpRequestException($"HTTP {response.StatusCode}");
 
                 var json = await response.Content.ReadAsStringAsync();
+                // [FACTORY PATTERN] Create Obat object dari JSON
                 return ParseObatFromJson(json);
             }
             catch (Exception ex)
@@ -83,14 +116,18 @@ namespace TubesKPL
             }
         }
 
+        // [METHOD] Add new obat ke API
+        // [SECURE CODE] Null check untuk obat parameter
+        // [STANDARD CODE] Content-Type header = application/json
         public async Task<Obat> AddObatAsync(Obat obat)
         {
             try
             {
+                // [SECURE CODE] Guard clause: obat tidak boleh null
                 if (obat == null)
                     throw new ArgumentNullException(nameof(obat));
 
-                var json = SerializeObat(obat);
+                var json = SerializeObat(obat);  // [FACTORY PATTERN] Serialize to JSON
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/obat", content);
 
