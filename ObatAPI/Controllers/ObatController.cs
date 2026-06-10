@@ -22,6 +22,30 @@ namespace ObatAPI.Controllers
             _logger = logger;
         }
 
+        private IActionResult HandleError(Exception ex, string action)
+        {
+            _logger.LogError(ex, $"Error in {action}");
+            string error = ex is DbUpdateException ? "Database connection failed" : "Internal server error";
+            return StatusCode(500, new { error, details = ex.Message });
+        }
+
+        private IActionResult? ValidateObat(Obat obat, bool isCreate = false)
+        {
+            if (isCreate && (obat == null || string.IsNullOrWhiteSpace(obat.Nama)))
+                return BadRequest(new { error = "Obat data and Nama are required" });
+
+            if (obat.ExpiredDate.Date < DateTime.Now.Date)
+                return BadRequest(new { error = "ExpiredDate cannot be in the past" });
+
+            if (obat.Stok < 0)
+                return BadRequest(new { error = "Invalid stock quantity" });
+
+            if (obat.Harga < 0)
+                return BadRequest(new { error = "Invalid price" });
+
+            return null;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -46,15 +70,9 @@ namespace ObatAPI.Controllers
                     pagination = new { page, pageSize, totalCount, totalPages = (totalCount + pageSize - 1) / pageSize }
                 });
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error in GetAll");
-                return StatusCode(500, new { error = "Database connection failed", details = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in GetAll");
-                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+                return HandleError(ex, nameof(GetAll));
             }
         }
 
@@ -64,24 +82,18 @@ namespace ObatAPI.Controllers
             try
             {
                 if (id <= 0)
-                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
+                    return BadRequest(new { error = "Invalid ID" });
 
                 var obat = await _dbContext.Obat.FindAsync(id);
                 if (obat == null)
-                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
+                    return NotFound(new { error = "Obat not found" });
 
                 _statusService.EvaluateStatus(obat);
                 return Ok(obat);
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error in GetById");
-                return StatusCode(500, new { error = "Database connection failed", details = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in GetById");
-                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+                return HandleError(ex, nameof(GetById));
             }
         }
 
@@ -90,17 +102,8 @@ namespace ObatAPI.Controllers
         {
             try
             {
-                if (obat == null || string.IsNullOrWhiteSpace(obat.Nama))
-                    return BadRequest(new { error = "Obat data and Nama are required" });
-
-                if (obat.ExpiredDate.Date < DateTime.Now.Date)
-                    return BadRequest(new { error = "ExpiredDate cannot be in the past", details = "Expired date must be today or later" });
-
-                if (obat.Stok < 0)
-                    return BadRequest(new { error = "Invalid stock quantity", details = "Stock cannot be negative" });
-
-                if (obat.Harga < 0)
-                    return BadRequest(new { error = "Invalid price", details = "Price cannot be negative" });
+                var validationError = ValidateObat(obat, isCreate: true);
+                if (validationError != null) return validationError;
 
                 _statusService.EvaluateStatus(obat);
                 obat.CreatedAt = DateTime.Now;
@@ -111,15 +114,9 @@ namespace ObatAPI.Controllers
 
                 return CreatedAtAction(nameof(GetById), new { id = obat.Id }, obat);
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error in Create");
-                return StatusCode(500, new { error = "Failed to create medicine", details = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in Create");
-                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+                return HandleError(ex, nameof(Create));
             }
         }
 
@@ -129,23 +126,17 @@ namespace ObatAPI.Controllers
             try
             {
                 if (id <= 0)
-                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
+                    return BadRequest(new { error = "Invalid ID" });
 
                 if (obat == null)
                     return BadRequest(new { error = "Obat data is required" });
 
+                var validationError = ValidateObat(obat);
+                if (validationError != null) return validationError;
+
                 var existingObat = await _dbContext.Obat.FindAsync(id);
                 if (existingObat == null)
-                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
-
-                if (obat.ExpiredDate.Date < DateTime.Now.Date)
-                    return BadRequest(new { error = "ExpiredDate cannot be in the past", details = "Expired date must be today or later" });
-
-                if (obat.Stok < 0)
-                    return BadRequest(new { error = "Invalid stock quantity", details = "Stock cannot be negative" });
-
-                if (obat.Harga < 0)
-                    return BadRequest(new { error = "Invalid price", details = "Price cannot be negative" });
+                    return NotFound(new { error = "Obat not found" });
 
                 existingObat.Nama = obat.Nama;
                 existingObat.Kategori = obat.Kategori;
@@ -161,15 +152,9 @@ namespace ObatAPI.Controllers
 
                 return Ok(existingObat);
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error in Update");
-                return StatusCode(500, new { error = "Failed to update medicine", details = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in Update");
-                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+                return HandleError(ex, nameof(Update));
             }
         }
 
@@ -179,26 +164,20 @@ namespace ObatAPI.Controllers
             try
             {
                 if (id <= 0)
-                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
+                    return BadRequest(new { error = "Invalid ID" });
 
                 var obat = await _dbContext.Obat.FindAsync(id);
                 if (obat == null)
-                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
+                    return NotFound(new { error = "Obat not found" });
 
                 _dbContext.Obat.Remove(obat);
                 await _dbContext.SaveChangesAsync();
 
                 return NoContent();
             }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error in Delete");
-                return StatusCode(500, new { error = "Failed to delete medicine", details = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in Delete");
-                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+                return HandleError(ex, nameof(Delete));
             }
         }
 
