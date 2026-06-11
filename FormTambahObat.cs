@@ -37,7 +37,7 @@ namespace TubesKPL
         {
             try
             {
-                string nama = textBox1.Text;
+                string nama = txtCariInputan.Text;
                 int stok = int.Parse(textBox2.Text);
                 decimal harga = decimal.Parse(textBox3.Text);
                 DateTime expired = dateTimePicker1.Value;
@@ -69,7 +69,7 @@ namespace TubesKPL
 
         private void textBox4_TextChanged(object sender, EventArgs e) { 
         }
-        private void textBox1_TextChanged(object sender, EventArgs e) { 
+        private void txtCariInputan_TextChanged(object sender, EventArgs e) { 
         }
         private void textBox2_TextChanged(object sender, EventArgs e) { 
         }

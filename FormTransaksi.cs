@@ -6,6 +6,7 @@ using System.Data.Odbc;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -38,7 +39,7 @@ namespace TubesKPL
         }
 
         // BIARKAN KOSONG AGAR DESAIN TIDAK ERROR
-        private void textBox1_TextChanged(object sender, EventArgs e) { }
+        private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) { }
         private void label3_Click(object sender, EventArgs e) { }
         private void label4_Click(object sender, EventArgs e) { }
@@ -180,78 +181,83 @@ namespace TubesKPL
             TabelKeranjang.DataSource = dt;
         }
 
+        // Notifikasi Validasi Transakasi
+        private const string ADD_SUCCESS_MESSAGE = "Obat berhasil ditambahkan";
+        private const string ADD_ERROR_MESSAGE = "Terjadi kesalahan saat menambahkan obat.";
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnCariObat_Click(object sender, EventArgs e)
         {
             try
             {
-                int jumlah;
-                Obat o = (Obat)BoxObat.SelectedItem;
+                Obat obat = (Obat)BoxObat.SelectedItem;
 
-                if (string.IsNullOrWhiteSpace(TBjumlah.Text))
+                if (!TransaksiValidator.ValidasiJumlah(
+                    TBjumlah.Text,
+                    out int jumlah))
                 {
-                    TampikanPesanLabel("Masukkan obat yang mau di beli ya", Color.Red);
+                    TampikanPesanLabel(
+                        "Jumlah tidak valid",
+                        Color.Red);
                     return;
                 }
 
-                if (!int.TryParse(TBjumlah.Text, out jumlah))
-                {
-                    TampikanPesanLabel("Tolong Masukkan Angka ya", Color.Red);
-                    return;
-                }
-
-                if (jumlah > o.Stok)
-                {
-                    TampikanPesanLabel("Stok tidak cukup", Color.Red);
-                    return;
-                }
-
-                ItemTransaksi item = new ItemTransaksi()
-                {
-                    obat = o,
-                    jumlah = jumlah
-                };
+                ItemTransaksi item =
+                    ItemTransaksiFactory.CreateItem(
+                        obat,
+                        jumlah);
 
                 keranjang.Add(item);
-                RefreshKeranjang();
-            }
 
+                RefreshKeranjang();
+
+                TampikanPesanLabel(
+                    ADD_SUCCESS_MESSAGE,
+                    Color.Green);
+            }
+            catch (ArgumentException ex)
+            {
+                TampikanPesanLabel(
+                    ex.Message,
+                    Color.Red);
+            }
             catch (Exception ex)
             {
-                {
-                    TampikanPesanLabel("Terjadi kesalahan saat menambahkan Obat." + 
-                        ex.Message, Color.Red);
-                }
+                TampikanPesanLabel(
+                    ADD_ERROR_MESSAGE + ex.Message,
+                    Color.Red);
             }
         }
 
         private void BtnHapus_Click(object sender, EventArgs e)
         {
-            try {
+            try
+            {
+                // 1. Get selected row index
                 int index = TabelKeranjang.CurrentRow?.Index ?? -1;
 
-                var validasi = new List<(bool kondisi, string pesan)>
-            {
-                (TabelKeranjang.CurrentRow == null, "Pilih item yang mau dihapus dulu ya!"),
-
-                (index < 0 || index >= keranjang.Count, "Item yang dipilih tidak valid!")
-            };
-
-                foreach (var aturan in validasi)
+                // 2. Check if row selected
+                if (TabelKeranjang.CurrentRow == null)
                 {
-                    if (aturan.kondisi)
-                    {
-                        MessageBox.Show(aturan.pesan);
-                        return;
-                    }
+                    MessageBox.Show("Pilih item yang mau dihapus dulu ya!");
+                    return;
                 }
 
+                // 3. Validate using validator
+                TransaksiValidator.HapusValidator(index, keranjang.Count);
+
+                // 4. Remove item
                 keranjang.RemoveAt(index);
                 RefreshKeranjang();
+
+                MessageBox.Show("Item berhasil dihapus");
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message);
             }
             catch (Exception ex)
             {
-                TampikanPesanLabel("Terjadi kesalahan saat menghapus item." + ex.Message, Color.Red);
+                TampikanPesanLabel("Terjadi kesalahan saat menghapus item: " + ex.Message, Color.Red);
             }
         }
 
@@ -273,17 +279,6 @@ namespace TubesKPL
         private void label8_Click_2(object sender, EventArgs e)
         {
 
-        }
-    }
-
-    public class ItemTransaksi
-    {
-        public Obat obat { get; set; }
-        public int jumlah { get; set; }
-
-        public decimal Subtotal()
-        {
-            return obat.Harga * jumlah;
         }
     }
 }
