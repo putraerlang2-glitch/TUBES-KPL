@@ -14,10 +14,10 @@ namespace TubesKPL
             editingObat = obatToEdit;
 
             // Isi kontrol input dengan data dari objek
-            txtNama.Text = editingObat.nama;
-            txtStok.Text = editingObat.stok.ToString();
-            txtHarga.Text = editingObat.harga.ToString();
-            dtpExpired.Value = editingObat.expiredDate;
+            txtNama.Text = editingObat.Nama;
+            txtStok.Text = editingObat.Stok.ToString();
+            txtHarga.Text = editingObat.Harga.ToString();
+            dtpExpired.Value = editingObat.ExpiredDate;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -36,15 +36,15 @@ namespace TubesKPL
         {
             try
             {
-                editingObat.nama = txtNama.Text.Trim();
+                editingObat.Nama = txtNama.Text.Trim();
 
                 if (int.TryParse(txtStok.Text, out int newStok))
-                    editingObat.stok = newStok;
+                    editingObat.Stok = newStok;
 
                 if (decimal.TryParse(txtHarga.Text, out decimal newHarga))
-                    editingObat.harga = newHarga;
+                    editingObat.Harga = newHarga;
 
-                editingObat.expiredDate = dtpExpired.Value;
+                editingObat.ExpiredDate = dtpExpired.Value;
                 editingObat.UpdateStatus();
 
                 this.DialogResult = DialogResult.OK;

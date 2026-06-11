@@ -17,11 +17,6 @@ namespace TubesKPL
             InitializeComponent();
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
         List<Obat> daftarObat = new List<Obat>()
         {
             new Obat("Paracetamol", 21, 5000, new DateTime(2025, 6, 15)),
@@ -68,74 +63,20 @@ namespace TubesKPL
 
         private void TerapkanWarnaStatus()
         {
-            if (tblObat.DataSource is DataTable dt)
-            {
-                for (int i = 0; i < tblObat.Rows.Count; i++)
-                {
-                    string status = tblObat.Rows[i].Cells[4].Value?.ToString();
-                    DataGridViewRow row = tblObat.Rows[i];
-
-                    switch (status)
-                    {
-                        case "Expired":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); // Merah muda
-                            break;
-                        case "LowStock":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); // Kuning muda
-                            break;
-                        case "Available":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); // Hijau muda
-                            break;
-                    }
-                }
-            }
+            StateMachine.ApplyStatusColors(tblObat, statusColumnIndex: 4);
         }
 
         private void TampilkanNotifikasi()
         {
-            List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
-            List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
-
-            // Notifikasi obat expired
-            if (obatExpired.Count > 0)
-            {
-                string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
-                foreach (var obat in obatExpired)
-                {
-                    pesan += $"- {obat.nama} (Expired: {obat.expiredDate:dd/MM/yyyy})\n";
-                }
-                MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-
-            // Notifikasi obat low stock
-            if (obatLowStock.Count > 0)
-            {
-                string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
-                foreach (var obat in obatLowStock)
-                {
-                    pesan += $"- {obat.nama} (Stok: {obat.stok})\n";
-                }
-                MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            // Tampilkan statistik
+            StateMachine.ShowNotifications(daftarObat);
             TampilkanStatistik();
         }
 
         private void TampilkanStatistik()
         {
-            int jumlahAvailable = daftarObat.Count(o => o.status == StatusObat.Available);
-            int jumlahLowStock = daftarObat.Count(o => o.status == StatusObat.LowStock);
-            int jumlahExpired = daftarObat.Count(o => o.status == StatusObat.Expired);
-
-            this.Text = $"Form1 - Available: {jumlahAvailable} | Low Stock: {jumlahLowStock} | Expired: {jumlahExpired}";
+            this.Text = StateMachine.FormatTitleWithStats("Form1", daftarObat);
         }
 
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -163,51 +104,6 @@ namespace TubesKPL
                 MessageBox.Show("Obat tidak ada");
                 TampilkanData(daftarObat);
             }
-        }
-    }
-    public enum StatusObat
-    {
-        Available,
-        LowStock,
-        Expired
-    }
-
-    public class Obat
-    {
-        public string nama { get; set; }
-        public int stok { get; set; }
-        public decimal harga { get; set; }
-        public DateTime expiredDate { get; set; }
-        public StatusObat status { get; set; }
-
-        public Obat(string nama, int stok, decimal harga, DateTime expiredDate)
-        {
-            this.nama = nama;
-            this.stok = stok;
-            this.harga = harga;
-            this.expiredDate = expiredDate;
-            this.status = HitungStatus();
-        }
-
-        public StatusObat HitungStatus()
-        {
-            if (expiredDate < DateTime.Now)
-            {
-                return StatusObat.Expired;
-            }
-            else if (stok < 10)
-            {
-                return StatusObat.LowStock;
-            }
-            else
-            {
-                return StatusObat.Available;
-            }
-        }
-
-        public void UpdateStatus()
-        {
-            status = HitungStatus();
         }
     }
 }

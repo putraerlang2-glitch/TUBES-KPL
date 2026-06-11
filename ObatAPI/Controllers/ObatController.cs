@@ -1,166 +1,152 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ObatAPI.Data;
 using ObatAPI.Models;
+using ObatAPI.Services;
 
 namespace ObatAPI.Controllers
 {
-    /// <summary>
-    /// ObatController - Refactored untuk EF Core + MySQL Database
-    /// 
-    /// Architecture:
-    /// - PRIMARY: MySQL Database via EF Core (persistent storage)
-    /// - DUAL EVALUATION: StateMachine.EvaluateStatus() at API-side (server)
-    /// - CLIENT-SIDE: TubesKPL akan juga evaluate untuk UI display
-    /// 
-    /// CRUD Operations:
-    /// 1. Receive request dari TubesKPL
-    /// 2. Save/Update to MySQL via EF Core
-    /// 3. Evaluate status dengan StateMachine (server-side)
-    /// 4. Return data dengan status terbaru
-    /// 5. TubesKPL akan re-evaluate untuk UI consistency
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ObatController : ControllerBase
     {
         private readonly ObatDbContext _dbContext;
+        private readonly IObatStatusService _statusService;
         private readonly ILogger<ObatController> _logger;
 
-        public ObatController(ObatDbContext dbContext, ILogger<ObatController> logger)
+        public ObatController(ObatDbContext dbContext, IObatStatusService statusService, ILogger<ObatController> logger)
         {
             _dbContext = dbContext;
+            _statusService = statusService;
             _logger = logger;
         }
 
-        /// <summary>
-        /// GET /api/obat - Ambil semua data obat dari database
-        /// 
-        /// Process:
-        /// 1. Query semua obat dari MySQL
-        /// 2. Evaluate status untuk setiap obat (StateMachine)
-        /// 3. Return dengan status terbaru
-        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             try
             {
-                _logger.LogInformation("GET /api/obat - Fetch all obat from MySQL");
+                if (page < 1) page = 1;
+                if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-                // Query dari database
-                var obatList = await _dbContext.Obat
-                    .OrderBy(o => o.Nama)
+                int skip = (page - 1) * pageSize;
+                var totalCount = await _dbContext.Obat.CountAsync();
+                var obatList = await _dbContext.Obat.OrderBy(o => o.Nama)
+                    .Skip(skip)
+                    .Take(pageSize)
                     .ToListAsync();
 
-                _logger.LogInformation($"Retrieved {obatList.Count} obat from database");
-
-                // Evaluate status untuk setiap obat (server-side)
-                // Ini akan di-duplikasi evaluation di client-side juga
                 foreach (var obat in obatList)
-                {
-                    EvaluateObatStatus(obat);
-                }
+                    _statusService.EvaluateStatus(obat);
 
-                return Ok(obatList);
+                return Ok(new
+                {
+                    data = obatList,
+                    pagination = new { page, pageSize, totalCount, totalPages = (totalCount + pageSize - 1) / pageSize }
+                });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in GetAll");
+                return StatusCode(500, new { error = "Database connection failed", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetAll");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+                _logger.LogError(ex, "Unexpected error in GetAll");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// GET /api/obat/{id} - Ambil obat berdasarkan ID
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             try
             {
-                _logger.LogInformation($"GET /api/obat/{id}");
+                if (id <= 0)
+                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
 
                 var obat = await _dbContext.Obat.FindAsync(id);
                 if (obat == null)
-                    return NotFound(new { error = "Obat not found" });
+                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
 
-                EvaluateObatStatus(obat);
+                _statusService.EvaluateStatus(obat);
                 return Ok(obat);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in GetById");
+                return StatusCode(500, new { error = "Database connection failed", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetById({id})");
-                return StatusCode(500, new { error = "Internal server error" });
+                _logger.LogError(ex, "Unexpected error in GetById");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// POST /api/obat - Tambah obat baru ke database
-        /// 
-        /// Process:
-        /// 1. Validate input
-        /// 2. Evaluate status dengan StateMachine
-        /// 3. Save to MySQL
-        /// 4. Return obat dengan status & timestamps
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Obat obat)
         {
             try
             {
-                _logger.LogInformation($"POST /api/obat - Create new obat: {obat?.Nama}");
-
                 if (obat == null || string.IsNullOrWhiteSpace(obat.Nama))
                     return BadRequest(new { error = "Obat data and Nama are required" });
 
-                // Evaluate status sebelum save
-                EvaluateObatStatus(obat);
+                if (obat.ExpiredDate.Date < DateTime.Now.Date)
+                    return BadRequest(new { error = "ExpiredDate cannot be in the past", details = "Expired date must be today or later" });
 
-                // Set timestamps
+                if (obat.Stok < 0)
+                    return BadRequest(new { error = "Invalid stock quantity", details = "Stock cannot be negative" });
+
+                if (obat.Harga < 0)
+                    return BadRequest(new { error = "Invalid price", details = "Price cannot be negative" });
+
+                _statusService.EvaluateStatus(obat);
                 obat.CreatedAt = DateTime.Now;
                 obat.UpdatedAt = DateTime.Now;
 
-                // Add to database
                 _dbContext.Obat.Add(obat);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"Obat '{obat.Nama}' created with ID {obat.Id} and status '{obat.Status}'");
-
                 return CreatedAtAction(nameof(GetById), new { id = obat.Id }, obat);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in Create");
+                return StatusCode(500, new { error = "Failed to create medicine", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in Create");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+                _logger.LogError(ex, "Unexpected error in Create");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// PUT /api/obat/{id} - Update obat di database
-        /// 
-        /// Process:
-        /// 1. Find obat by ID
-        /// 2. Update fields
-        /// 3. Re-evaluate status dengan StateMachine (very important!)
-        /// 4. Save to MySQL
-        /// 5. Return updated obat
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Obat obat)
         {
             try
             {
-                _logger.LogInformation($"PUT /api/obat/{id} - Update obat");
+                if (id <= 0)
+                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
 
                 if (obat == null)
                     return BadRequest(new { error = "Obat data is required" });
 
                 var existingObat = await _dbContext.Obat.FindAsync(id);
                 if (existingObat == null)
-                    return NotFound(new { error = "Obat not found" });
+                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
 
-                // Update fields
+                if (obat.ExpiredDate.Date < DateTime.Now.Date)
+                    return BadRequest(new { error = "ExpiredDate cannot be in the past", details = "Expired date must be today or later" });
+
+                if (obat.Stok < 0)
+                    return BadRequest(new { error = "Invalid stock quantity", details = "Stock cannot be negative" });
+
+                if (obat.Harga < 0)
+                    return BadRequest(new { error = "Invalid price", details = "Price cannot be negative" });
+
                 existingObat.Nama = obat.Nama;
                 existingObat.Kategori = obat.Kategori;
                 existingObat.Stok = obat.Stok;
@@ -168,112 +154,87 @@ namespace ObatAPI.Controllers
                 existingObat.ExpiredDate = obat.ExpiredDate;
                 existingObat.UpdatedAt = DateTime.Now;
 
-                // Re-evaluate status (CRITICAL - status mungkin berubah saat update)
-                EvaluateObatStatus(existingObat);
+                _statusService.EvaluateStatus(existingObat);
 
-                _logger.LogInformation($"Obat '{existingObat.Nama}' updated, status: {existingObat.Status}");
-
-                // Update database
                 _dbContext.Obat.Update(existingObat);
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(existingObat);
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in Update");
+                return StatusCode(500, new { error = "Failed to update medicine", details = ex.Message });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in Update({id})");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+                _logger.LogError(ex, "Unexpected error in Update");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// DELETE /api/obat/{id} - Hapus obat dari database
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _logger.LogInformation($"DELETE /api/obat/{id}");
+                if (id <= 0)
+                    return BadRequest(new { error = "Invalid ID", details = "ID must be greater than 0" });
 
                 var obat = await _dbContext.Obat.FindAsync(id);
                 if (obat == null)
-                    return NotFound(new { error = "Obat not found" });
+                    return NotFound(new { error = "Obat not found", details = $"No medicine found with ID {id}" });
 
                 _dbContext.Obat.Remove(obat);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"Obat '{obat.Nama}' deleted");
-
                 return NoContent();
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in Delete");
+                return StatusCode(500, new { error = "Failed to delete medicine", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in Delete({id})");
-                return StatusCode(500, new { error = "Internal server error" });
+                _logger.LogError(ex, "Unexpected error in Delete");
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// GET /api/obat/status/summary - Ambil ringkasan status menggunakan Table-Driven Dictionary
-        /// 
-        /// Pure Table-Driven Aggregation:
-        /// - Query semua obat dari database
-        /// - Evaluate status untuk setiap obat
-        /// - Use Dictionary Counter Table untuk aggregation (bukan LINQ Count)
-        /// - Return summary dengan counts per status
-        /// </summary>
         [HttpGet("status/summary")]
         public async Task<IActionResult> GetStatusSummary()
         {
             try
             {
-                _logger.LogInformation("GET /api/obat/status/summary");
-
-                // Query semua obat dari database
                 var obatList = await _dbContext.Obat.ToListAsync();
 
-                // Evaluate status untuk setiap obat sebelum aggregation
                 foreach (var obat in obatList)
-                {
-                    EvaluateObatStatus(obat);
-                }
+                    _statusService.EvaluateStatus(obat);
 
-                // Table-Driven: Dictionary Counter Table untuk aggregation
-                var counterTable = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+                var counterTable = new Dictionary<string, int>
                 {
                     { "Available", 0 },
                     { "LowStock", 0 },
                     { "Expired", 0 }
                 };
 
-                // Iterasi dan increment counter tanpa conditional chain
                 foreach (var obat in obatList)
                 {
                     string status = obat.Status ?? "Available";
-
                     if (counterTable.ContainsKey(status))
-                    {
                         counterTable[status]++;
-                    }
                     else
-                    {
                         counterTable["Available"]++;
-                    }
                 }
 
-                // One-way data extraction
-                var summary = new
+                return Ok(new
                 {
                     available = counterTable["Available"],
                     lowStock = counterTable["LowStock"],
                     expired = counterTable["Expired"],
                     total = obatList.Count
-                };
-
-                _logger.LogInformation($"Status Summary: Available={summary.available}, LowStock={summary.lowStock}, Expired={summary.expired}");
-
-                return Ok(summary);
+                });
             }
             catch (Exception ex)
             {
@@ -282,97 +243,24 @@ namespace ObatAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// GET /api/obat/status/rules - Ambil tabel rule status (reference untuk client)
-        /// </summary>
         [HttpGet("status/rules")]
         public IActionResult GetStatusRules()
         {
             try
             {
-                _logger.LogInformation("GET /api/obat/status/rules");
-
-                // Return rules sesuai StateMachine di client
                 var rules = new object[]
                 {
-                    new
-                    {
-                        id = 1,
-                        statusName = "Expired",
-                        priority = 1,
-                        conditionType = "ExpiredDate",
-                        op = "<",
-                        threshold = 0,
-                        colorCode = "#FFC8C8",
-                        description = "Obat sudah kadaluarsa"
-                    },
-                    new
-                    {
-                        id = 2,
-                        statusName = "LowStock",
-                        priority = 2,
-                        conditionType = "Stok",
-                        op = "<=",
-                        threshold = 5,
-                        colorCode = "#FFFFC8",
-                        description = "Stok obat menipis"
-                    },
-                    new
-                    {
-                        id = 3,
-                        statusName = "Available",
-                        priority = 3,
-                        conditionType = "None",
-                        op = "==",
-                        threshold = 0,
-                        colorCode = "#C8FFC8",
-                        description = "Obat tersedia dalam jumlah cukup"
-                    }
+                    new { id = 1, statusName = "Expired", priority = 1, conditionType = "ExpiredDate", op = "<", threshold = 0, colorCode = "#DC3545", description = "Obat sudah kadaluarsa" },
+                    new { id = 2, statusName = "LowStock", priority = 2, conditionType = "Stok", op = "<=", threshold = 5, colorCode = "#FFC107", description = "Stok obat menipis" },
+                    new { id = 3, statusName = "Available", priority = 3, conditionType = "None", op = "==", threshold = 0, colorCode = "#28A745", description = "Obat tersedia" }
                 };
 
-                var response = new
-                {
-                    rules = rules,
-                    lastUpdated = DateTime.Now,
-                    version = "1.0"
-                };
-
-                return Ok(response);
+                return Ok(new { rules = rules, version = "1.0" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetStatusRules");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Helper: Evaluate status obat berdasarkan StateRulesTable logic
-        /// 
-        /// Implementasi StateMachine di server-side untuk consistency
-        /// - Check ExpiredDate < Now → Expired (Priority 1)
-        /// - Check Stok <= 5 → LowStock (Priority 2)
-        /// - Else → Available (Priority 3)
-        /// </summary>
-        private void EvaluateObatStatus(Obat obat)
-        {
-            if (obat == null)
-                return;
-
-            // Priority 1: Expired
-            if (obat.ExpiredDate < DateTime.Now)
-            {
-                obat.Status = "Expired";
-            }
-            // Priority 2: LowStock
-            else if (obat.Stok <= 5)
-            {
-                obat.Status = "LowStock";
-            }
-            // Priority 3: Available (default)
-            else
-            {
-                obat.Status = "Available";
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
     }

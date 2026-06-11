@@ -26,67 +26,7 @@ namespace TubesKPL
         // Status obat (Available, LowStock, Expired) - string format dari API
         public string Status { get; set; } = "Available";
 
-        // ============================================
-        // BACKWARD COMPATIBILITY ALIASES (lowercase)
-        // ============================================
-
-        // Alias lowercase untuk 'Nama' - digunakan di banyak tempat dalam UI
-        public string nama
-        {
-            get { return Nama; }
-            set { Nama = value; }
-        }
-
-        // Alias lowercase untuk 'Stok' - digunakan di banyak tempat dalam UI
-        public int stok
-        {
-            get { return Stok; }
-            set { Stok = value; }
-        }
-
-        // Alias lowercase untuk 'Harga' - digunakan di banyak tempat dalam UI
-        public decimal harga
-        {
-            get { return Harga; }
-            set { Harga = value; }
-        }
-
-        // Alias lowercase untuk 'ExpiredDate' - digunakan di banyak tempat dalam UI
-        public DateTime expiredDate
-        {
-            get { return ExpiredDate; }
-            set { ExpiredDate = value; }
-        }
-
-        // Alias status sebagai enum untuk kompatibilitas dengan kode lama
-        // Digunakan di ObatApiService.cs untuk convert status string ke enum
-        public StatusObat status
-        {
-            get { return GetStatusEnum(); }
-            set { Status = value.ToString(); }
-        }
-
-        // Alias kategori sebagai enum untuk kompatibilitas dengan kode lama
-        // Digunakan di FormTambahObat.cs, JsonDataManager.cs, dan file UI lainnya
-        public KategoriObat kategori
-        {
-            get
-            {
-                try
-                {
-                    return (KategoriObat)Enum.Parse(typeof(KategoriObat), Kategori);
-                }
-                catch
-                {
-                    return KategoriObat.Tablet;
-                }
-            }
-            set { Kategori = value.ToString(); }
-        }
-
-        // ============================================
-        // KONSTRUKTOR
-        // ============================================
+        // Konstruktor
 
         // Konstruktor default (untuk JSON parsing/deserialization dari API)
         public Obat()
@@ -100,12 +40,18 @@ namespace TubesKPL
             Status = "Available";
         }
 
-        // Konstruktor untuk membuat obat baru dari UI atau data lama
-        // Parameter: nama, stok, harga, expiredDate, kategori (default "Tablet")
+        // Konstruktor dengan validasi input
         public Obat(string nama, int stok, decimal harga, DateTime expiredDate, string kategori = "Tablet", int id = 0)
         {
+            if (string.IsNullOrWhiteSpace(nama))
+                throw new ArgumentException("Nama obat tidak boleh kosong");
+            if (stok < 0)
+                throw new ArgumentException("Stok tidak boleh negatif");
+            if (harga <= 0)
+                throw new ArgumentException("Harga harus lebih dari 0");
+
             Id = id;
-            Nama = nama ?? string.Empty;
+            Nama = nama.Trim();
             Stok = stok;
             Harga = harga;
             ExpiredDate = expiredDate;
@@ -114,11 +60,18 @@ namespace TubesKPL
             UpdateStatus();
         }
 
-        // Konstruktor dengan enum kategori - masih digunakan di FormTambahObat.cs
+        // Konstruktor dengan enum kategori
         public Obat(string nama, int stok, decimal harga, DateTime expiredDate, KategoriObat kategoriEnum, int id = 0)
         {
+            if (string.IsNullOrWhiteSpace(nama))
+                throw new ArgumentException("Nama obat tidak boleh kosong");
+            if (stok < 0)
+                throw new ArgumentException("Stok tidak boleh negatif");
+            if (harga <= 0)
+                throw new ArgumentException("Harga harus lebih dari 0");
+
             Id = id;
-            Nama = nama ?? string.Empty;
+            Nama = nama.Trim();
             Stok = stok;
             Harga = harga;
             ExpiredDate = expiredDate;
