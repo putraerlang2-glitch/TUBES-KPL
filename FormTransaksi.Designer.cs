@@ -33,7 +33,7 @@ namespace TubesKPL
             this.label2 = new System.Windows.Forms.Label();
             this.TBjumlah = new System.Windows.Forms.TextBox();
             this.BtnHitung = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnCariObat = new System.Windows.Forms.Button();
             this.TabelKeranjang = new System.Windows.Forms.DataGridView();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -86,7 +86,7 @@ namespace TubesKPL
             this.TBjumlah.Name = "TBjumlah";
             this.TBjumlah.Size = new System.Drawing.Size(155, 22);
             this.TBjumlah.TabIndex = 3;
-            this.TBjumlah.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.TBjumlah.TextChanged += new System.EventHandler(this.txtCariInputan_TextChanged);
             // 
             // BtnHitung
             // 
@@ -99,16 +99,16 @@ namespace TubesKPL
             this.BtnHitung.UseVisualStyleBackColor = true;
             this.BtnHitung.Click += new System.EventHandler(this.BtnHitung_Click);
             // 
-            // button1
+            // btnCariObat
             // 
-            this.button1.Location = new System.Drawing.Point(133, 169);
-            this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(145, 26);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Tambah Pesanan";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnCariObat.Location = new System.Drawing.Point(133, 169);
+            this.btnCariObat.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btnCariObat.Name = "btnCariObat";
+            this.btnCariObat.Size = new System.Drawing.Size(145, 26);
+            this.btnCariObat.TabIndex = 5;
+            this.btnCariObat.Text = "Tambah Pesanan";
+            this.btnCariObat.UseVisualStyleBackColor = true;
+            this.btnCariObat.Click += new System.EventHandler(this.btnCariObat_Click);
             // 
             // TabelKeranjang
             // 
@@ -258,7 +258,7 @@ namespace TubesKPL
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.TabelKeranjang);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnCariObat);
             this.Controls.Add(this.BtnHitung);
             this.Controls.Add(this.TBjumlah);
             this.Controls.Add(this.label2);
@@ -280,7 +280,7 @@ namespace TubesKPL
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox TBjumlah;
         private System.Windows.Forms.Button BtnHitung;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnCariObat;
         private System.Windows.Forms.DataGridView TabelKeranjang;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;

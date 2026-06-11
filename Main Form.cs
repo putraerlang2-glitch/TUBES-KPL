@@ -96,6 +96,9 @@ namespace TubesKPL
             }
         }
 
+        // Constants untuk format (tambahkan di bagian atas class)
+        private const string DATE_FORMAT = "dd/MM/yyyy";
+        private const string CURRENCY_FORMAT = "C";
         private void TampilkanData(List<Obat> data)
         {
             // Update status untuk setiap obat menggunakan StateMachine
@@ -106,25 +109,32 @@ namespace TubesKPL
 
             DataTable dt = new DataTable();
 
-            dt.Columns.Add("Nama Obat");
-            dt.Columns.Add("Kategori");
-            dt.Columns.Add("Stok");
-            dt.Columns.Add("Harga");
-            dt.Columns.Add("Tanggal Expired");
-            dt.Columns.Add("Status");
+            string[] columns = 
+            {
+                    "Nama Obat",
+                    "Kategori",
+                    "Stok",
+                    "Harga",
+                    "Tanggal Expired",
+                    "Status"
+                };
 
-            foreach (var obat in data)
+            foreach (string column in columns)
+            {
+                dt.Columns.Add(column);
+            }
+
+            foreach (var obat in data) 
             {
                 dt.Rows.Add(
                     obat.Nama,
                     obat.Kategori,
                     obat.Stok,
-                    obat.Harga.ToString("C"),
-                    obat.ExpiredDate.ToString("dd/MM/yyyy"),
+                    obat.Harga.ToString(CURRENCY_FORMAT),
+                    obat.ExpiredDate.ToString(DATE_FORMAT),
                     obat.Status
                 );
             }
-
             tblObat.DataSource = dt;
 
             TerapkanWarnaStatus();
@@ -150,25 +160,35 @@ namespace TubesKPL
             this.Text = StateMachine.FormatTitleWithStats(baseTitle, daftarObat);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private const string OBAT_TIDAK_ADA = "Obat tidak ditemukan";//Notifikasi untuk pencarian obat
+        private void btnCariObat_Click(object sender, EventArgs e)
         {
-            string inputan = textBox1.Text.ToLower();
 
-            var hasil = daftarObat
-                .Where(o => o.Nama.ToLower().Contains(inputan))
+            string cariKeyword = txtCariInputan.Text
+         .ToLower()
+         .Trim();
+
+            if (string.IsNullOrEmpty(cariKeyword))
+            {
+                TampilkanData(daftarObat);
+                return;
+            }
+
+            var hasilPencarian = daftarObat
+                .Where(o => o.Nama.ToLower().Contains(cariKeyword))
                 .ToList();
 
-            if (hasil.Count > 0)
+            if (hasilPencarian.Count > 0)
             {
-                TampilkanData(hasil);
+                TampilkanData(hasilPencarian);
             }
             else
             {
-                MessageBox.Show("Obat tidak ditemukan");
+                MessageBox.Show(OBAT_TIDAK_ADA);
             }
         }
 
-        private async void button2_Click(object sender, EventArgs e)
+        private async void btnTambahObat_Click(object sender, EventArgs e)
         {
             FormTambahObat formTambah = new FormTambahObat();
 
@@ -287,7 +307,7 @@ namespace TubesKPL
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btnTransaksi_Click(object sender, EventArgs e)
         {
             FormTransaksi ft = new FormTransaksi(daftarObat, this);
             ft.Show();
@@ -298,7 +318,7 @@ namespace TubesKPL
 
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void txtCariInputan_TextChanged(object sender, EventArgs e)
         {
 
         }

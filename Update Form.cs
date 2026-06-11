@@ -26,8 +26,8 @@ namespace TubesKPL
         }
 
         // --- SOLUSI ERROR CS1061 ---
-        // Jika Designer mencari 'button1_Click', kita arahkan ke fungsi Simpan
-        private void button1_Click(object sender, EventArgs e)
+        // Jika Designer mencari 'btnCariObat_Click', kita arahkan ke fungsi Simpan
+        private void btnCariObat_Click(object sender, EventArgs e)
         {
             SimpanData();
         }
@@ -63,7 +63,7 @@ namespace TubesKPL
         }
 
         // Biarkan method kosong ini tetap ada jika Designer masih merujuk ke sini
-        private void textBox1_TextChanged(object sender, EventArgs e) { }
+        private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
         private void label1_Click(object sender, EventArgs e) { }
 
         private void dtpExpired_ValueChanged(object sender, EventArgs e)

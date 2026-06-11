@@ -52,6 +52,8 @@
     <Compile Include="FormTransaksi.Designer.cs">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </Compile>
+    <Compile Include="ItemTransaksi.cs" />
+    <Compile Include="ItemTransaksiFactory.cs" />
     <Compile Include="JsonDataManager.cs" />
     <Compile Include="Main Form.cs">
       <SubType>Form</SubType>
@@ -64,6 +66,7 @@
     <Compile Include="RuntimeConfig.cs" />
     <Compile Include="StateMachine.cs" />
     <Compile Include="StrukGenerator.cs" />
+    <Compile Include="TransaksiValidator.cs" />
     <Compile Include="Update Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -115,6 +118,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="data.json" />
+    <None Include="DATABASE_SETUP_COMPLETE.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

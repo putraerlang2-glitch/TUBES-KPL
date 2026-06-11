@@ -13,6 +13,11 @@ namespace ObatAPI.Models
         public decimal HargaSatuan { get; set; }
         public decimal Subtotal { get; set; }
 
+        /// <summary>Timestamp when line item was created</summary>
+        public DateTime CreatedAt { get; set; }
+
+        /// <summary>Navigation property to parent transaction (not serialized)</summary>
+
         [JsonIgnore]
         public Transaksi? Transaksi { get; set; }
         public Obat? Obat { get; set; }

@@ -129,22 +129,27 @@ namespace ObatAPI.Data
             {
                 entity.ToTable("transaksi_detail");
                 entity.HasKey(e => e.Id);
-                
+
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.TransaksiId).HasColumnName("transaksi_id");
                 entity.Property(e => e.ObatId).HasColumnName("obat_id");
-                
+
                 entity.Property(e => e.Jumlah).HasColumnName("jumlah");
                 entity.Property(e => e.HargaSatuan).HasColumnName("harga_satuan").HasPrecision(10, 2);
                 entity.Property(e => e.Subtotal).HasColumnName("subtotal").HasPrecision(12, 2);
                 
                 // Relasi ke Transaksi (One-to-Many)
+
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
+
+
                 entity.HasOne(d => d.Transaksi)
                       .WithMany(p => p.DetailList)
                       .HasForeignKey(d => d.TransaksiId)
                       .OnDelete(DeleteBehavior.Cascade);
                       
                 // Relasi ke Obat (One-to-Many)
+
                 entity.HasOne(d => d.Obat)
                       .WithMany()
                       .HasForeignKey(d => d.ObatId)

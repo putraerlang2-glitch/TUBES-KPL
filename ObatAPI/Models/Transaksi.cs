@@ -18,7 +18,8 @@ namespace ObatAPI.Models
         
         public decimal UangBayar { get; set; }
         public decimal UangKembalian { get; set; }
-        
+
+        /// <summary>Timestamp when transaction was created</summary>
         public DateTime CreatedAt { get; set; }
 
         public List<TransaksiDetail> DetailList { get; set; } = new List<TransaksiDetail>();

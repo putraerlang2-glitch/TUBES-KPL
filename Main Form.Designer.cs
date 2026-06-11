@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.tblObat = new System.Windows.Forms.DataGridView();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.txtCariInputan = new System.Windows.Forms.TextBox();
+            this.btnCariObat = new System.Windows.Forms.Button();
+            this.btnTambahObat = new System.Windows.Forms.Button();
             this.btnHapus = new System.Windows.Forms.Button();
             this.btnUpdate = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
-            this.button3 = new System.Windows.Forms.Button();
+            this.btnTransaksi = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tblObat)).BeginInit();
             this.SuspendLayout();
             // 
@@ -54,37 +54,37 @@
             this.tblObat.TabIndex = 0;
             this.tblObat.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
-            // textBox1
+            // txtCariInputan
             // 
-            this.textBox1.Location = new System.Drawing.Point(37, 284);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(326, 26);
-            this.textBox1.TabIndex = 1;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.txtCariInputan.Location = new System.Drawing.Point(37, 284);
+            this.txtCariInputan.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.txtCariInputan.Multiline = true;
+            this.txtCariInputan.Name = "txtCariInputan";
+            this.txtCariInputan.Size = new System.Drawing.Size(326, 26);
+            this.txtCariInputan.TabIndex = 1;
+            this.txtCariInputan.TextChanged += new System.EventHandler(this.txtCariInputan_TextChanged);
             // 
-            // button1
+            // btnCariObat
             // 
-            this.button1.Location = new System.Drawing.Point(37, 316);
-            this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(326, 30);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "Cari";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnCariObat.Location = new System.Drawing.Point(37, 316);
+            this.btnCariObat.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btnCariObat.Name = "btnCariObat";
+            this.btnCariObat.Size = new System.Drawing.Size(326, 30);
+            this.btnCariObat.TabIndex = 2;
+            this.btnCariObat.Text = "Cari";
+            this.btnCariObat.UseVisualStyleBackColor = true;
+            this.btnCariObat.Click += new System.EventHandler(this.btnCariObat_Click);
             // 
-            // button2
+            // btnTambahObat
             // 
-            this.button2.Location = new System.Drawing.Point(37, 350);
-            this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(326, 30);
-            this.button2.TabIndex = 3;
-            this.button2.Text = "Tambah";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btnTambahObat.Location = new System.Drawing.Point(37, 350);
+            this.btnTambahObat.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btnTambahObat.Name = "btnTambahObat";
+            this.btnTambahObat.Size = new System.Drawing.Size(326, 30);
+            this.btnTambahObat.TabIndex = 3;
+            this.btnTambahObat.Text = "Tambah";
+            this.btnTambahObat.UseVisualStyleBackColor = true;
+            this.btnTambahObat.Click += new System.EventHandler(this.btnTambahObat_Click);
             // 
             // btnHapus
             // 
@@ -117,28 +117,28 @@
             this.button4.Text = "button4";
             this.button4.UseVisualStyleBackColor = true;
             // 
-            // button3
+            // btnTransaksi
             // 
-            this.button3.Location = new System.Drawing.Point(391, 320);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(249, 26);
-            this.button3.TabIndex = 7;
-            this.button3.Text = "Transaksi";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.btnTransaksi.Location = new System.Drawing.Point(391, 320);
+            this.btnTransaksi.Name = "btnTransaksi";
+            this.btnTransaksi.Size = new System.Drawing.Size(249, 26);
+            this.btnTransaksi.TabIndex = 7;
+            this.btnTransaksi.Text = "Transaksi";
+            this.btnTransaksi.UseVisualStyleBackColor = true;
+            this.btnTransaksi.Click += new System.EventHandler(this.btnTransaksi_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(765, 505);
-            this.Controls.Add(this.button3);
+            this.Controls.Add(this.btnTransaksi);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.btnUpdate);
             this.Controls.Add(this.btnHapus);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.btnTambahObat);
+            this.Controls.Add(this.btnCariObat);
+            this.Controls.Add(this.txtCariInputan);
             this.Controls.Add(this.tblObat);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
@@ -153,13 +153,13 @@
         #endregion
 
         private System.Windows.Forms.DataGridView tblObat;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox txtCariInputan;
+        private System.Windows.Forms.Button btnCariObat;
+        private System.Windows.Forms.Button btnTambahObat;
         private System.Windows.Forms.Button btnHapus;
         private System.Windows.Forms.Button btnUpdate;
         private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button btnTransaksi;
     }
 }
 
