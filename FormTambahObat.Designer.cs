@@ -10,191 +10,197 @@
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
             {
                 components.Dispose();
             }
+
             base.Dispose(disposing);
         }
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txtCariInputan = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
-            this.btnSimpan_Click = new System.Windows.Forms.Button();
-            this.btnBatal_Click = new System.Windows.Forms.Button();
-            this.label5 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.lblNama = new System.Windows.Forms.Label();
+            this.lblStok = new System.Windows.Forms.Label();
+            this.lblHarga = new System.Windows.Forms.Label();
+            this.lblKategori = new System.Windows.Forms.Label();
+            this.lblExpired = new System.Windows.Forms.Label();
+
+            this.txtNamaObat = new System.Windows.Forms.TextBox();
+            this.txtStok = new System.Windows.Forms.TextBox();
+            this.txtHarga = new System.Windows.Forms.TextBox();
+
+            this.cmbKategori = new System.Windows.Forms.ComboBox();
+            this.dtpExpired = new System.Windows.Forms.DateTimePicker();
+
+            this.btnSimpan = new System.Windows.Forms.Button();
+            this.btnBatal = new System.Windows.Forms.Button();
+
             this.SuspendLayout();
+
             // 
-            // label1
+            // lblNama
             // 
-            this.label1.AutoSize = true;
-            this.label1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label1.Location = new System.Drawing.Point(103, 74);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(114, 18);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Nama Obat           :";
+            this.lblNama.AutoSize = true;
+            this.lblNama.Location = new System.Drawing.Point(80, 60);
+            this.lblNama.Name = "lblNama";
+            this.lblNama.Size = new System.Drawing.Size(87, 16);
+            this.lblNama.TabIndex = 0;
+            this.lblNama.Text = "Nama Obat :";
+
             // 
-            // label2
+            // lblStok
             // 
-            this.label2.AutoSize = true;
-            this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label2.Location = new System.Drawing.Point(103, 112);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(114, 18);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Stok                         :";
+            this.lblStok.AutoSize = true;
+            this.lblStok.Location = new System.Drawing.Point(80, 100);
+            this.lblStok.Name = "lblStok";
+            this.lblStok.Size = new System.Drawing.Size(43, 16);
+            this.lblStok.TabIndex = 1;
+            this.lblStok.Text = "Stok :";
+
             // 
-            // label3
+            // lblHarga
             // 
-            this.label3.AutoSize = true;
-            this.label3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label3.Location = new System.Drawing.Point(103, 146);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(116, 18);
-            this.label3.TabIndex = 2;
-            this.label3.Text = "Harga                      :";
+            this.lblHarga.AutoSize = true;
+            this.lblHarga.Location = new System.Drawing.Point(80, 140);
+            this.lblHarga.Name = "lblHarga";
+            this.lblHarga.Size = new System.Drawing.Size(50, 16);
+            this.lblHarga.TabIndex = 2;
+            this.lblHarga.Text = "Harga :";
+
             // 
-            // label4
+            // lblKategori
             // 
-            this.label4.AutoSize = true;
-            this.label4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label4.Location = new System.Drawing.Point(102, 215);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(115, 18);
-            this.label4.TabIndex = 3;
-            this.label4.Text = "Tanggal Expired :";
-            this.label4.Click += new System.EventHandler(this.label4_Click);
+            this.lblKategori.AutoSize = true;
+            this.lblKategori.Location = new System.Drawing.Point(80, 180);
+            this.lblKategori.Name = "lblKategori";
+            this.lblKategori.Size = new System.Drawing.Size(64, 16);
+            this.lblKategori.TabIndex = 3;
+            this.lblKategori.Text = "Kategori :";
+
             // 
-            // txtCariInputan
+            // lblExpired
             // 
-            this.txtCariInputan.Location = new System.Drawing.Point(282, 74);
-            this.txtCariInputan.Multiline = true;
-            this.txtCariInputan.Name = "txtCariInputan";
-            this.txtCariInputan.Size = new System.Drawing.Size(196, 21);
-            this.txtCariInputan.TabIndex = 4;
-            this.txtCariInputan.TextChanged += new System.EventHandler(this.txtCariInputan_TextChanged);
+            this.lblExpired.AutoSize = true;
+            this.lblExpired.Location = new System.Drawing.Point(80, 220);
+            this.lblExpired.Name = "lblExpired";
+            this.lblExpired.Size = new System.Drawing.Size(105, 16);
+            this.lblExpired.TabIndex = 4;
+            this.lblExpired.Text = "Tanggal Expired :";
+
             // 
-            // textBox2
+            // txtNamaObat
             // 
-            this.textBox2.Location = new System.Drawing.Point(282, 109);
-            this.textBox2.Multiline = true;
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(196, 21);
-            this.textBox2.TabIndex = 5;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
+            this.txtNamaObat.Location = new System.Drawing.Point(220, 57);
+            this.txtNamaObat.Name = "txtNamaObat";
+            this.txtNamaObat.Size = new System.Drawing.Size(220, 22);
+            this.txtNamaObat.TabIndex = 5;
+
             // 
-            // textBox3
+            // txtStok
             // 
-            this.textBox3.Location = new System.Drawing.Point(282, 143);
-            this.textBox3.Multiline = true;
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(196, 21);
-            this.textBox3.TabIndex = 6;
-            this.textBox3.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
+            this.txtStok.Location = new System.Drawing.Point(220, 97);
+            this.txtStok.Name = "txtStok";
+            this.txtStok.Size = new System.Drawing.Size(220, 22);
+            this.txtStok.TabIndex = 6;
+
             // 
-            // dateTimePicker1
+            // txtHarga
             // 
-            this.dateTimePicker1.Location = new System.Drawing.Point(282, 215);
-            this.dateTimePicker1.Name = "dateTimePicker1";
-            this.dateTimePicker1.Size = new System.Drawing.Size(196, 22);
-            this.dateTimePicker1.TabIndex = 8;
-            this.dateTimePicker1.ValueChanged += new System.EventHandler(this.dateTimePicker1_ValueChanged);
+            this.txtHarga.Location = new System.Drawing.Point(220, 137);
+            this.txtHarga.Name = "txtHarga";
+            this.txtHarga.Size = new System.Drawing.Size(220, 22);
+            this.txtHarga.TabIndex = 7;
+
             // 
-            // btnSimpan_Click
+            // cmbKategori
             // 
-            this.btnSimpan_Click.Location = new System.Drawing.Point(165, 284);
-            this.btnSimpan_Click.Name = "btnSimpan_Click";
-            this.btnSimpan_Click.Size = new System.Drawing.Size(75, 30);
-            this.btnSimpan_Click.TabIndex = 9;
-            this.btnSimpan_Click.Text = "Simpan";
-            this.btnSimpan_Click.UseVisualStyleBackColor = true;
-            this.btnSimpan_Click.Click += new System.EventHandler(this.btnSimpan_Click_Click);
+            this.cmbKategori.FormattingEnabled = true;
+            this.cmbKategori.Location = new System.Drawing.Point(220, 177);
+            this.cmbKategori.Name = "cmbKategori";
+            this.cmbKategori.Size = new System.Drawing.Size(220, 24);
+            this.cmbKategori.TabIndex = 8;
+
             // 
-            // btnBatal_Click
+            // dtpExpired
             // 
-            this.btnBatal_Click.Location = new System.Drawing.Point(369, 284);
-            this.btnBatal_Click.Name = "btnBatal_Click";
-            this.btnBatal_Click.Size = new System.Drawing.Size(75, 30);
-            this.btnBatal_Click.TabIndex = 10;
-            this.btnBatal_Click.Text = "Batal";
-            this.btnBatal_Click.UseVisualStyleBackColor = true;
-            this.btnBatal_Click.Click += new System.EventHandler(this.btnBatal_Click_Click);
+            this.dtpExpired.Location = new System.Drawing.Point(220, 217);
+            this.dtpExpired.Name = "dtpExpired";
+            this.dtpExpired.Size = new System.Drawing.Size(220, 22);
+            this.dtpExpired.TabIndex = 9;
+
             // 
-            // label5
+            // btnSimpan
             // 
-            this.label5.AutoSize = true;
-            this.label5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label5.Location = new System.Drawing.Point(102, 180);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(97, 18);
-            this.label5.TabIndex = 11;
-            this.label5.Text = "Kategori Obat :";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
+            this.btnSimpan.Location = new System.Drawing.Point(120, 290);
+            this.btnSimpan.Name = "btnSimpan";
+            this.btnSimpan.Size = new System.Drawing.Size(100, 35);
+            this.btnSimpan.TabIndex = 10;
+            this.btnSimpan.Text = "Simpan";
+            this.btnSimpan.UseVisualStyleBackColor = true;
+            this.btnSimpan.Click += new System.EventHandler(this.btnSimpan_Click);
+
             // 
-            // comboBox1
+            // btnBatal
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(282, 174);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(196, 24);
-            this.comboBox1.TabIndex = 12;
-            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            this.btnBatal.Location = new System.Drawing.Point(300, 290);
+            this.btnBatal.Name = "btnBatal";
+            this.btnBatal.Size = new System.Drawing.Size(100, 35);
+            this.btnBatal.TabIndex = 11;
+            this.btnBatal.Text = "Batal";
+            this.btnBatal.UseVisualStyleBackColor = true;
+            this.btnBatal.Click += new System.EventHandler(this.btnBatal_Click);
+
             // 
             // FormTambahObat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(600, 411);
-            this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.btnBatal_Click);
-            this.Controls.Add(this.btnSimpan_Click);
-            this.Controls.Add(this.dateTimePicker1);
-            this.Controls.Add(this.textBox3);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.txtCariInputan);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.ClientSize = new System.Drawing.Size(550, 380);
+
+            this.Controls.Add(this.lblNama);
+            this.Controls.Add(this.lblStok);
+            this.Controls.Add(this.lblHarga);
+            this.Controls.Add(this.lblKategori);
+            this.Controls.Add(this.lblExpired);
+
+            this.Controls.Add(this.txtNamaObat);
+            this.Controls.Add(this.txtStok);
+            this.Controls.Add(this.txtHarga);
+
+            this.Controls.Add(this.cmbKategori);
+            this.Controls.Add(this.dtpExpired);
+
+            this.Controls.Add(this.btnSimpan);
+            this.Controls.Add(this.btnBatal);
+
             this.Name = "FormTambahObat";
-            this.Text = "FormTambahObat";
+            this.Text = "Tambah Obat";
+
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtCariInputan;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.TextBox textBox3;
-        private System.Windows.Forms.DateTimePicker dateTimePicker1;
-        private System.Windows.Forms.Button btnSimpan_Click;
-        private System.Windows.Forms.Button btnBatal_Click;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Label lblNama;
+        private System.Windows.Forms.Label lblStok;
+        private System.Windows.Forms.Label lblHarga;
+        private System.Windows.Forms.Label lblKategori;
+        private System.Windows.Forms.Label lblExpired;
+
+        private System.Windows.Forms.TextBox txtNamaObat;
+        private System.Windows.Forms.TextBox txtStok;
+        private System.Windows.Forms.TextBox txtHarga;
+
+        private System.Windows.Forms.ComboBox cmbKategori;
+        private System.Windows.Forms.DateTimePicker dtpExpired;
+
+        private System.Windows.Forms.Button btnSimpan;
+        private System.Windows.Forms.Button btnBatal;
     }
 }

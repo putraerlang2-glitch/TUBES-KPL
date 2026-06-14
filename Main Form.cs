@@ -194,7 +194,7 @@ namespace TubesKPL
                 {
                     using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
                     {
-                        var obatBaru = await client.AddObatAsync(formTambah.obatBaru);
+                        var obatBaru = await client.AddObatAsync(formTambah.ObatBaru);
                         daftarObat.Add(obatBaru);
 
                         TampilkanData(daftarObat);
