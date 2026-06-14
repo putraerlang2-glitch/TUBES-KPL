@@ -49,7 +49,7 @@
             this.txtNama.Name = "txtNama";
             this.txtNama.Size = new System.Drawing.Size(253, 40);
             this.txtNama.TabIndex = 0;
-            this.txtNama.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.txtNama.TextChanged += new System.EventHandler(this.txtCariInputan_TextChanged);
             // 
             // contextMenuStrip1
             // 
@@ -118,7 +118,7 @@
             this.btnSimpan.TabIndex = 9;
             this.btnSimpan.Text = "Simpan";
             this.btnSimpan.UseVisualStyleBackColor = true;
-            this.btnSimpan.Click += new System.EventHandler(this.button1_Click);
+            this.btnSimpan.Click += new System.EventHandler(this.btnCariObat_Click);
             // 
             // dtpExpired
             // 

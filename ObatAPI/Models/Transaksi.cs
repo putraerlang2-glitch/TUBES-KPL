@@ -40,7 +40,7 @@ namespace ObatAPI.Models
 
         /// <summary>Change returned to customer (UangBayar - TotalAkhir)</summary>
         public decimal UangKembalian { get; set; }
-        
+
         /// <summary>Timestamp when transaction was created</summary>
         public DateTime CreatedAt { get; set; }
 

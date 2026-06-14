@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using static TubesKPL.Obat;
@@ -8,98 +7,153 @@ namespace TubesKPL
 {
     public partial class FormTambahObat : Form
     {
-        public Obat obatBaru;
-
+        public Obat ObatBaru { get; private set; }
         public FormTambahObat()
         {
             InitializeComponent();
-
-            ApplyRuntimeConfig();
-
-            GenericHelper.GenericComboBox<KategoriObat>(comboBox1);
+            GenericHelper.LoadEnumToComboBox<KategoriObat>(cmbKategori);
         }
 
-        private void ApplyRuntimeConfig()
+        private void btnSimpan_Click(object sender, EventArgs e)
         {
             try
             {
-                if (File.Exists("config.txt"))
+                string namaObat = txtNamaObat.Text.Trim();
+                if (!int.TryParse(txtStok.Text, out int jumlahStok))
                 {
-                    string appName = File.ReadAllText("config.txt");
-                    this.Text = "Tambah Data - " + appName;
-                }
-            }
-            catch {
-            }
-        }
-
-        private void btnSimpan_Click_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                string nama = textBox1.Text;
-                int stok = int.Parse(textBox2.Text);
-                decimal harga = decimal.Parse(textBox3.Text);
-                DateTime expired = dateTimePicker1.Value;
-
-                if (!ObatValidator.IsValidInput(nama, stok))
-                {
-                    MessageBox.Show("Input Nama atau Stok tidak valid!");
+                    MessageBox.Show(
+                        "Stok harus berupa angka!",
+                        "Validasi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
                     return;
                 }
 
-                KategoriObat kategoriTerpilih = (KategoriObat)comboBox1.SelectedItem;
+                if (!decimal.TryParse(txtHarga.Text, out decimal hargaObat))
+                {
+                    MessageBox.Show(
+                        "Harga harus berupa angka!",
+                        "Validasi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                    return;
+                }
 
-                obatBaru = new Obat(nama, stok, harga, expired, kategoriTerpilih);
+                DateTime tanggalExpired = dtpExpired.Value;
+
+                if (cmbKategori.SelectedItem == null)
+                {
+                    MessageBox.Show(
+                        "Kategori wajib dipilih!",
+                        "Validasi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                    return;
+                }
+
+                KategoriObat kategoriObat =
+                    (KategoriObat)cmbKategori.SelectedItem;
+
+                if (!ObatValidator.ValidateObatInput(
+                    namaObat,
+                    jumlahStok,
+                    hargaObat))
+                {
+                    MessageBox.Show(
+                        "Input obat tidak valid!",
+                        "Validasi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                    return;
+                }
+
+                ObatBaru = ObatFactory.Create(
+                    namaObat,
+                    jumlahStok,
+                    hargaObat,
+                    tanggalExpired,
+                    kategoriObat
+                );
+
+                MessageBox.Show(
+                    "Data obat berhasil ditambahkan!",
+                    "Sukses",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Terjadi Error: " + ex.Message);
+                Debug.WriteLine($"Error: {ex.Message}");
+
+                MessageBox.Show(
+                    "Terjadi kesalahan saat menyimpan data.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
-
-        private void btnBatal_Click_Click(object sender, EventArgs e)
+        private void btnBatal_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
-
-        private void textBox4_TextChanged(object sender, EventArgs e) { 
-        }
-        private void textBox1_TextChanged(object sender, EventArgs e) { 
-        }
-        private void textBox2_TextChanged(object sender, EventArgs e) { 
-        }
-        private void textBox3_TextChanged(object sender, EventArgs e) { 
-        }
-        private void dateTimePicker1_ValueChanged(object sender, EventArgs e) { 
-        }
-        private void label5_Click(object sender, EventArgs e) { 
-        }
-        private void label4_Click(object sender, EventArgs e) { 
-        }
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) { 
-        }
     }
-
     public static class ObatValidator
     {
-        public static bool IsValidInput(string nama, int stok)
+        public static bool ValidateObatInput(
+            string namaObat,
+            int jumlahStok,
+            decimal hargaObat)
         {
-            if (string.IsNullOrWhiteSpace(nama)) return false;
-            if (stok < 0) return false;
+            if (string.IsNullOrWhiteSpace(namaObat))
+                return false;
+
+            if (jumlahStok < 0)
+                return false;
+
+            if (hargaObat < 0)
+                return false;
+
             return true;
+        }
+    }
+    public static class ObatFactory
+    {
+        public static Obat Create(
+            string namaObat,
+            int jumlahStok,
+            decimal hargaObat,
+            DateTime tanggalExpired,
+            KategoriObat kategoriObat)
+        {
+            namaObat = namaObat.Trim();
+
+            return new Obat(
+                namaObat,
+                jumlahStok,
+                hargaObat,
+                tanggalExpired,
+                kategoriObat
+            );
         }
     }
 
     public static class GenericHelper
     {
-        public static void GenericComboBox<T>(ComboBox cmb) where T : Enum
+        public static void LoadEnumToComboBox<T>(ComboBox comboBox)
+            where T : Enum
         {
-            cmb.DataSource = Enum.GetValues(typeof(T));
+            comboBox.DataSource = Enum.GetValues(typeof(T));
         }
     }
 }
+
