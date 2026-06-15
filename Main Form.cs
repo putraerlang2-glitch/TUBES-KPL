@@ -1,212 +1,95 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using static TubesKPL.Obat;
 
 namespace TubesKPL
 {
     public partial class Form1 : Form
     {
-        // List data obat
         List<Obat> daftarObat = new List<Obat>();
 
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        public Form1() => InitializeComponent();
+        public void RefreshData() => TampilkanData(daftarObat);
 
-        public void RefreshData()
-        {
-            TampilkanData(daftarObat);
-            TampilkanStatistik();
-        }
+        private async void Form1_Load(object sender, EventArgs e) => await LoadFromApi();
 
-        // Fallback data jika API gagal
-        private List<Obat> GetSampleData()
+        private async Task LoadFromApi()
         {
-            return new List<Obat>()
-            {
-                new Obat("Paracetamol", 21, 5000, new DateTime(2025, 12, 15), "Tablet"),
-                new Obat("Ibuprofen", 12, 7000, new DateTime(2025, 11, 20), "Tablet"),
-                new Obat("Sanmol", 15, 3000, new DateTime(2025, 10, 5), "Sirup"),
-                new Obat("HRIG", 3, 20000, new DateTime(2025, 8, 10), "AntiJamur"),
-                new Obat("Influenza", 10, 2000, new DateTime(2025, 9, 15), "Tablet"),
-                new Obat("Vitamin C", 11, 500000, new DateTime(2026, 8, 1), "Vitamin")
-            };
-        }
-
-        private async void Form1_Load(object sender, EventArgs e)
-        {
-            ObatApiClient client = null;
-
             try
             {
-                client = new ObatApiClient("https://localhost:7245");
-
-                Console.WriteLine("[MAIN FORM] Fetching data from API...");
-
-                daftarObat = await client.GetAllObatAsync();
-
-                Console.WriteLine($"[MAIN FORM] Received {(daftarObat?.Count ?? 0)} items from API");
-
-                if (daftarObat == null || daftarObat.Count == 0)
+                using (var client = new ObatApiClient())
                 {
-                    MessageBox.Show(
-                        "Tidak ada data dari API.\nMenggunakan sample data.",
-                        "Info",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-
-                    daftarObat = GetSampleData();
+                    Console.WriteLine("[Main Form] Fetching data from API...");
+                    daftarObat = await client.GetAllObatAsync() ?? new List<Obat>();
+                    Console.WriteLine($"[Main Form] Received {daftarObat.Count} items from API");
                 }
 
                 ObatApiService.Initialize(daftarObat);
-
                 TampilkanData(daftarObat);
-                TampilkanNotifikasi();
+                StateMachine.ShowNotifications(daftarObat);
+                this.Text = StateMachine.FormatTitleWithStats("Apotek", daftarObat);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[ERROR] {ex.Message}");
-
-                MessageBox.Show(
-                    $"Gagal mengambil data API.\n\n{ex.Message}\n\nMenggunakan sample data.",
-                    "API Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
-                daftarObat = GetSampleData();
-
-                ObatApiService.Initialize(daftarObat);
-
+                Console.WriteLine($"[Main Form Error] {ex.Message}");
+                MessageBox.Show($"Gagal memuat data dari API: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                daftarObat.Clear();
                 TampilkanData(daftarObat);
-                TampilkanNotifikasi();
-            }
-            finally
-            {
-                if (client != null)
-                    client.Dispose();
             }
         }
 
-        // Constants untuk format (tambahkan di bagian atas class)
         private const string DATE_FORMAT = "dd/MM/yyyy";
         private const string CURRENCY_FORMAT = "C";
+
         private void TampilkanData(List<Obat> data)
         {
-            if (data == null || data.Count == 0)
-                return;
+            foreach (var obat in data) StateMachine.EvaluateStatus(obat);
+            DataTable dt = new DataTable();
+            dt.Columns.AddRange(new[] { "Nama Obat", "Kategori", "Stok", "Harga", "Tanggal Expired", "Status" });
 
             foreach (var obat in data)
-            {
-                StateMachine.EvaluateStatus(obat);
-            }
+                dt.Rows.Add(obat.Nama, obat.Kategori, obat.Stok, obat.Harga.ToString(CURRENCY_FORMAT), obat.ExpiredDate.ToString(DATE_FORMAT), obat.Status);
 
-            DataTable dt = new DataTable();
-
-            string[] columns = 
-            {
-                    "Nama Obat",
-                    "Kategori",
-                    "Stok",
-                    "Harga",
-                    "Tanggal Expired",
-                    "Status"
-                };
-
-            foreach (string column in columns)
-            {
-                dt.Columns.Add(column);
-            }
-
-            foreach (var obat in data) 
-            {
-                dt.Rows.Add(
-                    obat.Nama,
-                    obat.Kategori,
-                    obat.Stok,
-                    obat.Harga.ToString(CURRENCY_FORMAT),
-                    obat.ExpiredDate.ToString(DATE_FORMAT),
-                    obat.Status
-                );
-            }
             tblObat.DataSource = dt;
-            TerapkanWarnaStatus();
+            StateMachine.ApplyStatusColors(tblObat, 5);
         }
 
-        private void TerapkanWarnaStatus()
-        {
-            StateMachine.ApplyStatusColors(tblObat, colIndex: 5);
-        }
+        private const string OBAT_TIDAK_ADA = "Obat tidak ditemukan";
 
-        private void TampilkanNotifikasi()
-        {
-            StateMachine.ShowNotifications(daftarObat);
-            TampilkanStatistik();
-        }
-
-        private void TampilkanStatistik()
-        {
-            string baseTitle = "Apotek";
-            this.Text = StateMachine.FormatTitleWithStats(baseTitle, daftarObat);
-        }
-
-        private const string OBAT_TIDAK_ADA = "Obat tidak ditemukan";//Notifikasi untuk pencarian obat
         private void btnCariObat_Click(object sender, EventArgs e)
         {
-
-            string cariKeyword = txtCariInputan.Text
-         .ToLower()
-         .Trim();
-
-            if (string.IsNullOrEmpty(cariKeyword))
+            string cariKeyword = txtCariInputan.Text.ToLower().Trim();
+            if (string.IsNullOrWhiteSpace(cariKeyword))
             {
                 TampilkanData(daftarObat);
                 return;
             }
 
-            var hasilPencarian = daftarObat
-                .Where(o => o.Nama.ToLower().Contains(cariKeyword))
-                .ToList();
-
-            if (hasilPencarian.Count > 0)
-            {
-                TampilkanData(hasilPencarian);
-            }
-            else
-            {
-                MessageBox.Show(OBAT_TIDAK_ADA);
-            }
+            var hasilPencarian = daftarObat.Where(o => o.Nama.ToLower().Contains(cariKeyword)).ToList();
+            if (hasilPencarian.Count > 0) TampilkanData(hasilPencarian);
+            else MessageBox.Show(OBAT_TIDAK_ADA);
         }
 
         private async void btnTambahObat_Click(object sender, EventArgs e)
         {
             FormTambahObat formTambah = new FormTambahObat();
+            if (formTambah.ShowDialog() != DialogResult.OK) return;
 
-            if (formTambah.ShowDialog() == DialogResult.OK)
+            try
             {
-                try
+                using (var client = new ObatApiClient())
                 {
-                    using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
-                    {
-                        var obatBaru = await client.AddObatAsync(formTambah.ObatBaru);
-                        daftarObat.Add(obatBaru);
-
-                        TampilkanData(daftarObat);
-                        TampilkanStatistik();
-                        MessageBox.Show("Obat berhasil disimpan ke Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Gagal menyimpan ke database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var obatBaru = await client.AddObatAsync(formTambah.ObatBaru);
+                    daftarObat.Add(obatBaru);
+                    TampilkanData(daftarObat);
+                    this.Text = StateMachine.FormatTitleWithStats("Apotek", daftarObat);
+                    MessageBox.Show("Obat berhasil disimpan ke database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
+            catch (Exception ex) { MessageBox.Show($"Gagal menyimpan ke database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
         private async void btnUpdate_Click(object sender, EventArgs e)
@@ -218,104 +101,58 @@ namespace TubesKPL
             }
 
             int selectedIndex = tblObat.CurrentRow.Index;
-
             if (selectedIndex < 0 || selectedIndex >= daftarObat.Count)
             {
-                MessageBox.Show(
-                    "Baris tidak valid.",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
+                MessageBox.Show("Baris tidak valid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             Obat selectedObat = daftarObat[selectedIndex];
-
             Form2 f2 = new Form2(selectedObat);
+            if (f2.ShowDialog() != DialogResult.OK) return;
 
-            if (f2.ShowDialog() == DialogResult.OK)
+            try
             {
-                try
+                using (var client = new ObatApiClient())
                 {
-                    using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
-                    {
-                        var updatedObat = await client.UpdateObatAsync(selectedObat.Id, selectedObat);
-                        daftarObat[selectedIndex] = updatedObat;
-
-                        TampilkanData(daftarObat);
-                        TampilkanStatistik();
-                        MessageBox.Show("Obat berhasil diubah di Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Gagal merubah data di database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var updatedObat = await client.UpdateObatAsync(selectedObat.Id, selectedObat);
+                    daftarObat[selectedIndex] = updatedObat;
+                    TampilkanData(daftarObat);
+                    this.Text = StateMachine.FormatTitleWithStats("Apotek", daftarObat);
+                    MessageBox.Show("Obat berhasil diubah di database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
+            catch (Exception ex) { MessageBox.Show($"Gagal merubah data di database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
         private async void btnHapus_Click(object sender, EventArgs e)
         {
-            if (tblObat.CurrentRow != null)
+            if (tblObat.CurrentRow == null) return;
+            int selectedIndex = tblObat.CurrentRow.Index;
+            if (selectedIndex < 0 || selectedIndex >= daftarObat.Count) return;
+
+            Obat selectedObat = daftarObat[selectedIndex];
+            if (MessageBox.Show($"Hapus {selectedObat.Nama} dari database secara permanen?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            try
             {
-                int selectedIndex = tblObat.CurrentRow.Index;
-                if (selectedIndex < 0 || selectedIndex >= daftarObat.Count) return;
-
-                Obat selectedObat = daftarObat[selectedIndex];
-                string nama = selectedObat.Nama;
-
-                if (
-                    MessageBox.Show(
-                        $"Hapus {nama} dari database secara permanen?",
-                        "Konfirmasi",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Warning
-                    ) == DialogResult.Yes
-                )
+                using (var client = new ObatApiClient())
                 {
-                    try
+                    if (await client.DeleteObatAsync(selectedObat.Id))
                     {
-                        using (ObatApiClient client = new ObatApiClient("https://localhost:7245"))
-                        {
-                            bool sukses = await client.DeleteObatAsync(selectedObat.Id);
-                            if (sukses)
-                            {
-                                daftarObat.RemoveAt(selectedIndex);
-
-                                TampilkanData(daftarObat);
-                                TampilkanStatistik();
-                                MessageBox.Show("Obat berhasil dihapus dari Database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
-                            else
-                            {
-                                MessageBox.Show("Gagal menghapus data dari server.", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                        }
+                        daftarObat.RemoveAt(selectedIndex);
+                        TampilkanData(daftarObat);
+                        this.Text = StateMachine.FormatTitleWithStats("Apotek", daftarObat);
+                        MessageBox.Show("Obat berhasil dihapus dari database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Gagal menghapus dari database:\n{ex.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    else MessageBox.Show("Gagal menghapus data dari server.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+            catch (Exception ex) { MessageBox.Show($"Gagal menghapus dari database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
-        private void btnTransaksi_Click(object sender, EventArgs e)
-        {
-            FormTransaksi ft = new FormTransaksi(daftarObat, this);
-            ft.Show();
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void txtCariInputan_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void btnTransaksi_Click(object sender, EventArgs e) => new FormTransaksi(daftarObat, this).Show();
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
+        private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
     }
 }
