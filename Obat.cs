@@ -5,8 +5,8 @@ namespace TubesKPL
 {
     public class Obat
     {
-        [JsonProperty("id")]
-        public int Id { get; set; }
+        [JsonProperty("obatId")]
+        public int ObatId { get; set; }
 
         [JsonProperty("nama")]
         public string Nama { get; set; } = string.Empty;
@@ -28,13 +28,13 @@ namespace TubesKPL
 
         public Obat() => ExpiredDate = DateTime.Now.AddYears(1);
 
-        public Obat(string nama, int stok, decimal harga, DateTime expiredDate, string kategori = "Tablet", int id = 0)
+        public Obat(string nama, int stok, decimal harga, DateTime expiredDate, string kategori = "Tablet", int obatId = 0)
         {
             if (string.IsNullOrWhiteSpace(nama)) throw new ArgumentException("Nama obat tidak boleh kosong");
             if (stok < 0) throw new ArgumentException("Stok tidak boleh negatif");
             if (harga <= 0) throw new ArgumentException("Harga harus lebih dari 0");
 
-            Id = id;
+            ObatId = obatId;
             Nama = nama.Trim();
             Stok = stok;
             Harga = harga;
@@ -43,8 +43,8 @@ namespace TubesKPL
             UpdateStatus();
         }
 
-        public Obat(string nama, int stok, decimal harga, DateTime expiredDate, KategoriObat kategoriEnum, int id = 0)
-            : this(nama, stok, harga, expiredDate, kategoriEnum.ToString(), id) { }
+        public Obat(string nama, int stok, decimal harga, DateTime expiredDate, KategoriObat kategoriEnum, int obatId = 0)
+            : this(nama, stok, harga, expiredDate, kategoriEnum.ToString(), obatId) { }
 
         public void UpdateStatus()
         {
@@ -61,7 +61,7 @@ namespace TubesKPL
             };
         }
 
-        public override string ToString() => $"[{Id}] {Nama} | Stok: {Stok} | Status: {Status} | Exp: {ExpiredDate:yyyy-MM-dd}";
+        public override string ToString() => $"[{ObatId}] {Nama} | Stok: {Stok} | Status: {Status} | Exp: {ExpiredDate:yyyy-MM-dd}";
     }
 
     public enum StatusObat

@@ -35,7 +35,7 @@ namespace TubesKPL
             catch (Exception ex)
             {
                 Console.WriteLine($"[Main Form Error] {ex.Message}");
-                MessageBox.Show($"Gagal memuat data dari API: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Gagal memuat data dari API.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 daftarObat.Clear();
                 TampilkanData(daftarObat);
             }
@@ -48,7 +48,14 @@ namespace TubesKPL
         {
             foreach (var obat in data) StateMachine.EvaluateStatus(obat);
             DataTable dt = new DataTable();
-            dt.Columns.AddRange(new[] { "Nama Obat", "Kategori", "Stok", "Harga", "Tanggal Expired", "Status" });
+            dt.Columns.AddRange(new DataColumn[] {
+                new DataColumn("Nama Obat"),
+                new DataColumn("Kategori"),
+                new DataColumn("Stok"),
+                new DataColumn("Harga"),
+                new DataColumn("Tanggal Expired"),
+                new DataColumn("Status")
+            });
 
             foreach (var obat in data)
                 dt.Rows.Add(obat.Nama, obat.Kategori, obat.Stok, obat.Harga.ToString(CURRENCY_FORMAT), obat.ExpiredDate.ToString(DATE_FORMAT), obat.Status);
@@ -89,7 +96,10 @@ namespace TubesKPL
                     MessageBox.Show("Obat berhasil disimpan ke database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            catch (Exception ex) { MessageBox.Show($"Gagal menyimpan ke database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (Exception ex) { 
+                Console.WriteLine($"[Main Form Error] {ex.Message}");
+                MessageBox.Show($"Gagal menyimpan ke database.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+            }
         }
 
         private async void btnUpdate_Click(object sender, EventArgs e)
@@ -115,14 +125,17 @@ namespace TubesKPL
             {
                 using (var client = new ObatApiClient())
                 {
-                    var updatedObat = await client.UpdateObatAsync(selectedObat.Id, selectedObat);
+                    var updatedObat = await client.UpdateObatAsync(selectedObat.ObatId, selectedObat);
                     daftarObat[selectedIndex] = updatedObat;
                     TampilkanData(daftarObat);
                     this.Text = StateMachine.FormatTitleWithStats("Apotek", daftarObat);
                     MessageBox.Show("Obat berhasil diubah di database!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            catch (Exception ex) { MessageBox.Show($"Gagal merubah data di database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (Exception ex) { 
+                Console.WriteLine($"[Main Form Error] {ex.Message}");
+                MessageBox.Show($"Gagal merubah data di database.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+            }
         }
 
         private async void btnHapus_Click(object sender, EventArgs e)
@@ -138,7 +151,7 @@ namespace TubesKPL
             {
                 using (var client = new ObatApiClient())
                 {
-                    if (await client.DeleteObatAsync(selectedObat.Id))
+                    if (await client.DeleteObatAsync(selectedObat.ObatId))
                     {
                         daftarObat.RemoveAt(selectedIndex);
                         TampilkanData(daftarObat);
@@ -148,7 +161,10 @@ namespace TubesKPL
                     else MessageBox.Show("Gagal menghapus data dari server.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex) { MessageBox.Show($"Gagal menghapus dari database: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (Exception ex) { 
+                Console.WriteLine($"[Main Form Error] {ex.Message}");
+                MessageBox.Show($"Gagal menghapus dari database.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); 
+            }
         }
 
         private void btnTransaksi_Click(object sender, EventArgs e) => new FormTransaksi(daftarObat, this).Show();

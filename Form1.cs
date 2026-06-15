@@ -35,7 +35,7 @@ namespace TubesKPL
             catch (Exception ex)
             {
                 Console.WriteLine($"[Form1 Error] {ex.Message}");
-                MessageBox.Show($"Gagal memuat data dari API: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Gagal memuat data dari API.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 daftarObat.Clear();
                 TampilkanData(daftarObat);
             }
@@ -45,7 +45,13 @@ namespace TubesKPL
         {
             foreach (var obat in data) obat.UpdateStatus();
             DataTable dt = new DataTable();
-            dt.Columns.AddRange(new[] { "Nama Obat", "Stok", "Harga", "Tanggal Expired", "Status" });
+            dt.Columns.AddRange(new DataColumn[] {
+                new DataColumn("Nama Obat"),
+                new DataColumn("Stok"),
+                new DataColumn("Harga"),
+                new DataColumn("Tanggal Expired"),
+                new DataColumn("Status")
+            });
 
             foreach (var obat in data)
                 dt.Rows.Add(obat.Nama, obat.Stok, obat.Harga.ToString("C"), obat.ExpiredDate.ToString("dd/MM/yyyy"), obat.Status);

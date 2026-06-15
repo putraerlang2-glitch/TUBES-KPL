@@ -23,6 +23,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IObatStatusService, ObatStatusService>();
 builder.Services.AddScoped<IObatSeederService, ObatSeederService>();
 
+// Daftarkan Hosted Service untuk menampilkan akun berkala
+builder.Services.AddHostedService<UserDisplayHostedService>();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
@@ -63,6 +66,11 @@ try
         Console.WriteLine("[DB] Migrations applied successfully!");
 
         await seederService.SeedDatabaseAsync(dbContext);
+
+        // Seed dummy user login (otomatis hash password!)
+        Console.WriteLine("[DB] Seeding dummy users...");
+        await DatabaseSeeder.SeedAsync(dbContext);
+        Console.WriteLine("[DB] Dummy users seeded successfully!");
     }
 }
 catch (Exception ex)

@@ -9,6 +9,9 @@
     <RootNamespace>TubesKPL</RootNamespace>
     <AssemblyName>TubesKPL</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <RuntimeIdentifiers>win;win-x86;win-x64</RuntimeIdentifiers>
+    <LangVersion>8.0</LangVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -57,7 +60,6 @@
     </Compile>
     <Compile Include="ItemTransaksi.cs" />
     <Compile Include="ItemTransaksiFactory.cs" />
-    <Compile Include="JsonDataManager.cs" />
     <Compile Include="Main Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -120,7 +122,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="data.json" />
     <None Include="DATABASE_SETUP_COMPLETE.md" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
