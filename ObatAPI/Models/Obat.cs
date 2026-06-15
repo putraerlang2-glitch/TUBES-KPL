@@ -4,7 +4,7 @@ namespace ObatAPI.Models
 {
     public class Obat
     {
-        public int Id { get; set; }
+        public int ObatId { get; set; }
 
         [Required(ErrorMessage = "Nama obat harus diisi")]
         [StringLength(255, MinimumLength = 1, ErrorMessage = "Nama harus antara 1-255 karakter")]

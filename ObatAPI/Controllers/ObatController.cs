@@ -76,15 +76,15 @@ namespace ObatAPI.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{obatId}")]
+        public async Task<IActionResult> GetById(int obatId)
         {
             try
             {
-                if (id <= 0)
+                if (obatId <= 0)
                     return BadRequest(new { error = "Invalid ID" });
 
-                var obat = await _dbContext.Obat.FindAsync(id);
+                var obat = await _dbContext.Obat.FindAsync(obatId);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 
@@ -112,7 +112,7 @@ namespace ObatAPI.Controllers
                 _dbContext.Obat.Add(obat);
                 await _dbContext.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetById), new { id = obat.Id }, obat);
+                return CreatedAtAction(nameof(GetById), new { obatId = obat.ObatId }, obat);
             }
             catch (Exception ex)
             {
@@ -120,12 +120,12 @@ namespace ObatAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Obat obat)
+        [HttpPut("{obatId}")]
+        public async Task<IActionResult> Update(int obatId, [FromBody] Obat obat)
         {
             try
             {
-                if (id <= 0)
+                if (obatId <= 0)
                     return BadRequest(new { error = "Invalid ID" });
 
                 if (obat == null)
@@ -134,7 +134,7 @@ namespace ObatAPI.Controllers
                 var validationError = ValidateObat(obat);
                 if (validationError != null) return validationError;
 
-                var existingObat = await _dbContext.Obat.FindAsync(id);
+                var existingObat = await _dbContext.Obat.FindAsync(obatId);
                 if (existingObat == null)
                     return NotFound(new { error = "Obat not found" });
 
@@ -158,15 +158,15 @@ namespace ObatAPI.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{obatId}")]
+        public async Task<IActionResult> Delete(int obatId)
         {
             try
             {
-                if (id <= 0)
+                if (obatId <= 0)
                     return BadRequest(new { error = "Invalid ID" });
 
-                var obat = await _dbContext.Obat.FindAsync(id);
+                var obat = await _dbContext.Obat.FindAsync(obatId);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 

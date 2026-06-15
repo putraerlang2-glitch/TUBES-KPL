@@ -25,6 +25,18 @@ namespace ObatAPI.Controllers
             if (transaksi == null || transaksi.DetailList == null || transaksi.DetailList.Count == 0)
                 return BadRequest(new { error = "Data transaksi atau rincian kosong" });
 
+            // Log nilai yang diterima untuk debugging
+            _logger.LogInformation("[DEBUG API] Received Transaction:");
+            _logger.LogInformation($"[DEBUG API] NoStruk: {transaksi.NoStruk}");
+            _logger.LogInformation($"[DEBUG API] Subtotal: {transaksi.Subtotal}");
+            _logger.LogInformation($"[DEBUG API] PersentaseDiskon: {transaksi.PersentaseDiskon}");
+            _logger.LogInformation($"[DEBUG API] NominalDiskon: {transaksi.NominalDiskon}");
+            _logger.LogInformation($"[DEBUG API] PersentasePajak: {transaksi.PersentasePajak}");
+            _logger.LogInformation($"[DEBUG API] NominalPajak: {transaksi.NominalPajak}");
+            _logger.LogInformation($"[DEBUG API] TotalAkhir: {transaksi.TotalAkhir}");
+            _logger.LogInformation($"[DEBUG API] UangBayar: {transaksi.UangBayar}");
+            _logger.LogInformation($"[DEBUG API] UangKembalian: {transaksi.UangKembalian}");
+
             var strategy = _dbContext.Database.CreateExecutionStrategy();
 
             return await strategy.ExecuteAsync(async () =>
@@ -51,7 +63,7 @@ namespace ObatAPI.Controllers
                             return BadRequest(new { error = "Invalid price", details = $"HargaSatuan cannot be negative for ObatId {detail.ObatId}" });
                         }
 
-                        detail.TransaksiId = transaksi.Id;
+                        detail.TransaksiId = transaksi.TransaksiId;
                         
                         var obat = await _dbContext.Obat.FindAsync(detail.ObatId);
                         if (obat != null)

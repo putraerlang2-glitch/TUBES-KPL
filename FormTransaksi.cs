@@ -114,18 +114,27 @@ namespace TubesKPL
                     NominalPajak = nominalPajak,
                     TotalAkhir = grandTotal,
                     UangBayar = uangBayar,
-                    UangKembalian = kembalian
+                    UangKembalian = kembalian,
+                    UserId = 1 // Sementara hardcode untuk testing (id user admin di database)
                 };
+
+                // Log nilai untuk debugging
+                Console.WriteLine($"[DEBUG] Subtotal: {dto.Subtotal}");
+                Console.WriteLine($"[DEBUG] NominalDiskon: {dto.NominalDiskon}");
+                Console.WriteLine($"[DEBUG] NominalPajak: {dto.NominalPajak}");
+                Console.WriteLine($"[DEBUG] TotalAkhir: {dto.TotalAkhir}");
+                Console.WriteLine($"[DEBUG] UangBayar: {dto.UangBayar}");
+                Console.WriteLine($"[DEBUG] UangKembalian: {dto.UangKembalian}");
 
                 foreach (var item in keranjang)
                 {
                     dto.DetailList.Add(new TransaksiDetailDTO
-                    {
-                        ObatId = item.Obat.Id,
-                        Jumlah = item.Jumlah,
-                        HargaSatuan = item.Obat.Harga,
-                        Subtotal = item.Subtotal()
-                    });
+                {
+                    ObatId = item.Obat.ObatId,
+                    Jumlah = item.Jumlah,
+                    HargaSatuan = item.Obat.Harga,
+                    Subtotal = item.Subtotal()
+                });
                 }
 
                 using (var client = new ObatApiClient("https://localhost:7245"))
