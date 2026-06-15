@@ -33,19 +33,17 @@ namespace TubesKPL
         }
 
     private void TampikanPesanLabel(string pesan, Color warna)
-        {
-            label8.Text = pesan;
-            label8.ForeColor = warna;
-        }
+    {
+        label8.Text = pesan;
+        label8.ForeColor = warna;
+    }
 
-        // BIARKAN KOSONG AGAR DESAIN TIDAK ERROR
         private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) { }
         private void label3_Click(object sender, EventArgs e) { }
         private void label4_Click(object sender, EventArgs e) { }
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
 
-        // TOMBOL UBAH CONFIGURATOR
         private void BtnUbahConfig_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TBPajak.Text) || string.IsNullOrWhiteSpace(TBDiskon.Text))
@@ -70,7 +68,6 @@ namespace TubesKPL
             }
         }
 
-        // TOMBOL BAYAR / HITUNG
         private async void BtnHitung_Click(object sender, EventArgs e)
         {
             if (keranjang.Count == 0)
@@ -85,13 +82,11 @@ namespace TubesKPL
                 subtotal += item.Subtotal();
             }
 
-            // 2. Terapkan RUNTIME CONFIGURATOR
             decimal nominalDiskon = subtotal * RuntimeConfig.DiskonAktif;
             decimal subtotalSetelahDiskon = subtotal - nominalDiskon;
             decimal nominalPajak = subtotalSetelahDiskon * RuntimeConfig.PajakPPN;
             decimal grandTotal = subtotalSetelahDiskon + nominalPajak;
 
-            // 3. Validasi Uang Bayar dari TBUangBayar
             if (!decimal.TryParse(TBUangBayar.Text, out decimal uangBayar))
             {
                 TampikanPesanLabel("Masukkan angka nominal uang bayar yang valid!", Color.Red);
@@ -100,14 +95,12 @@ namespace TubesKPL
 
             if (uangBayar < grandTotal)
             {
-                TampikanPesanLabel($"Uang tidak cukup! Total Pembayaran:" +
-                    $" {grandTotal.ToString("C")}", Color.Red);
+                TampikanPesanLabel($"Uang tidak cukup! Total Pembayaran: {grandTotal:C}", Color.Red);
                 return;
             }
 
             decimal kembalian = uangBayar - grandTotal;
 
-            // 4. Kirim Data Transaksi ke MySQL via API
             try
             {
                 var dto = new TransaksiDTO
@@ -128,32 +121,28 @@ namespace TubesKPL
                 {
                     dto.DetailList.Add(new TransaksiDetailDTO
                     {
-                        ObatId = item.obat.Id,
-                        Jumlah = item.jumlah,
-                        HargaSatuan = item.obat.Harga,
+                        ObatId = item.Obat.Id,
+                        Jumlah = item.Jumlah,
+                        HargaSatuan = item.Obat.Harga,
                         Subtotal = item.Subtotal()
                     });
                 }
 
-                // Call API
                 using (var client = new ObatApiClient("https://localhost:7245"))
                 {
                     await client.CheckoutTransaksiAsync(dto);
                 }
 
-                // Update Stok Obat di memory lokal (karena sukses di server)
                 foreach (var item in keranjang)
                 {
-                    item.obat.Stok -= item.jumlah;
-                    item.obat.UpdateStatus();
+                    item.Obat.Stok -= item.Jumlah;
+                    item.Obat.UpdateStatus();
                 }
 
-                // 5. Panggil CODE REUSE (Cetak Struk)
                 StrukGenerator.GenerateStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
 
                 MessageBox.Show("Transaksi Berhasil disimpan ke MySQL!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // 6. Bersihkan Keranjang
                 keranjang.Clear();
                 RefreshKeranjang();
                 mainform.RefreshData();
@@ -176,12 +165,11 @@ namespace TubesKPL
 
             foreach (var item in keranjang)
             {
-                dt.Rows.Add(item.obat.Nama, item.obat.Harga.ToString("C"), item.jumlah, item.Subtotal().ToString("C"));
+                dt.Rows.Add(item.Obat.Nama, item.Obat.Harga.ToString("C"), item.Jumlah, item.Subtotal().ToString("C"));
             }
             TabelKeranjang.DataSource = dt;
         }
 
-        // Notifikasi Validasi Transakasi
         private const string ADD_SUCCESS_MESSAGE = "Obat berhasil ditambahkan";
         private const string ADD_ERROR_MESSAGE = "Terjadi kesalahan saat menambahkan obat.";
 
@@ -232,20 +220,16 @@ namespace TubesKPL
         {
             try
             {
-                // 1. Get selected row index
                 int index = TabelKeranjang.CurrentRow?.Index ?? -1;
 
-                // 2. Check if row selected
                 if (TabelKeranjang.CurrentRow == null)
                 {
                     MessageBox.Show("Pilih item yang mau dihapus dulu ya!");
                     return;
                 }
 
-                // 3. Validate using validator
                 TransaksiValidator.HapusValidator(index, keranjang.Count);
 
-                // 4. Remove item
                 keranjang.RemoveAt(index);
                 RefreshKeranjang();
 

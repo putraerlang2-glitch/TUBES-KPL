@@ -22,46 +22,26 @@ namespace TubesKPL
 
         private static readonly StatusConfig[] StatusTable = new[]
         {
-            new StatusConfig 
-            { 
-                Name = STATUS_EXPIRED, 
-                Color = Color.FromArgb(220, 53, 69), 
-                Condition = o => o.ExpiredDate < DateTime.Now 
-            },
-            new StatusConfig 
-            { 
-                Name = STATUS_LOW_STOCK, 
-                Color = Color.FromArgb(255, 193, 7), 
-                Condition = o => o.Stok <= LOW_STOCK_THRESHOLD 
-            },
-            new StatusConfig 
-            { 
-                Name = STATUS_AVAILABLE, 
-                Color = Color.FromArgb(40, 167, 69), 
-                Condition = o => true 
-            }
+            new StatusConfig { Name = STATUS_EXPIRED, Color = Color.FromArgb(220, 53, 69), Condition = o => o.ExpiredDate < DateTime.Now },
+            new StatusConfig { Name = STATUS_LOW_STOCK, Color = Color.FromArgb(255, 193, 7), Condition = o => o.Stok <= LOW_STOCK_THRESHOLD },
+            new StatusConfig { Name = STATUS_AVAILABLE, Color = Color.FromArgb(40, 167, 69), Condition = o => true }
         };
-
 
         public static void EvaluateStatus(Obat obat)
         {
-            if (obat == null) return;
-            obat.Status = StatusTable.First(cfg => cfg.Condition(obat)).Name;
+            if (obat != null) obat.Status = StatusTable.First(cfg => cfg.Condition(obat)).Name;
         }
 
-        public static Color GetStatusColor(string status)
-        {
-            return StatusTable.FirstOrDefault(cfg => cfg.Name == status)?.Color ?? Color.White;
-        }
+        public static Color GetStatusColor(string status) => StatusTable.FirstOrDefault(cfg => cfg.Name == status)?.Color ?? Color.White;
 
         public static void ApplyStatusColors(DataGridView grid, int colIndex = 4)
         {
             if (grid?.Rows.Count == 0) return;
 
-            for (int i = 0; i < grid.Rows.Count; i++)
+            foreach (DataGridViewRow row in grid.Rows)
             {
-                string status = grid.Rows[i].Cells[colIndex].Value?.ToString() ?? STATUS_AVAILABLE;
-                grid.Rows[i].DefaultCellStyle.BackColor = GetStatusColor(status);
+                string status = row.Cells[colIndex].Value?.ToString() ?? STATUS_AVAILABLE;
+                row.DefaultCellStyle.BackColor = GetStatusColor(status);
             }
         }
 
@@ -70,12 +50,9 @@ namespace TubesKPL
             available = lowStock = expired = 0;
             if (list == null) return;
 
-            foreach (var obat in list)
-            {
-                if (obat.Status == STATUS_EXPIRED) expired++;
-                else if (obat.Status == STATUS_LOW_STOCK) lowStock++;
-                else available++;
-            }
+            available = list.Count(o => o.Status == STATUS_AVAILABLE);
+            lowStock = list.Count(o => o.Status == STATUS_LOW_STOCK);
+            expired = list.Count(o => o.Status == STATUS_EXPIRED);
         }
 
         public static void ShowNotifications(List<Obat> list)
@@ -83,11 +60,8 @@ namespace TubesKPL
             GetStatusCounts(list, out _, out var low, out var exp);
             if (exp + low == 0) return;
 
-            string msg = (exp > 0 ? $"⚠️ Ada {exp} obat EXPIRED\n" : "") +
-                         (low > 0 ? $"⚠️ Ada {low} obat STOK MENIPIS" : "");
-
-            if (!string.IsNullOrEmpty(msg))
-                MessageBox.Show(msg.Trim(), "Notifikasi Status Obat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            string msg = (exp > 0 ? $"⚠️ Ada {exp} obat EXPIRED\n" : "") + (low > 0 ? $"⚠️ Ada {low} obat STOK MENIPIS" : "");
+            if (!string.IsNullOrEmpty(msg)) MessageBox.Show(msg.Trim(), "Notifikasi Status Obat", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         public static string FormatTitleWithStats(string baseTitle, List<Obat> list)

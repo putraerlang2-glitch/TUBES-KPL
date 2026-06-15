@@ -26,10 +26,6 @@ namespace ObatAPI.Models
         public string Status { get; set; } = "Available";
 
         public DateTime CreatedAt { get; set; }
-
-        /// <summary>
-        /// Timestamp saat record terakhir diupdate
-        /// </summary>
         public DateTime UpdatedAt { get; set; }
     }
 }

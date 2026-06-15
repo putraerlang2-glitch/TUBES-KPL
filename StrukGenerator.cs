@@ -6,7 +6,6 @@ using System.Windows.Forms;
 
 namespace TubesKPL
 {
-    // [LANGGA - CODE REUSE]
     public static class StrukGenerator
     {
         public static void GenerateStruk(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
@@ -21,8 +20,8 @@ namespace TubesKPL
 
             foreach (var item in keranjang)
             {
-                sb.AppendLine(item.obat.Nama);
-                sb.AppendLine($"{item.jumlah} x Rp {item.obat.Harga:N0} = Rp {item.Subtotal():N0}");
+                sb.AppendLine(item.Obat.Nama);
+                sb.AppendLine($"{item.Jumlah} x Rp {item.Obat.Harga:N0} = Rp {item.Subtotal():N0}");
             }
 
             sb.AppendLine("--------------------------------------");
