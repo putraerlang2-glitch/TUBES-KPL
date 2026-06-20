@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using ObatAPI.Data;
 using ObatAPI.Models;
@@ -33,9 +32,6 @@ namespace ObatAPI.Controllers
         {
             if (isCreate && (obat == null || string.IsNullOrWhiteSpace(obat.Nama)))
                 return BadRequest(new { error = "Obat data and Nama are required" });
-
-            if (obat.ExpiredDate.Date < DateTime.Now.Date)
-                return BadRequest(new { error = "ExpiredDate cannot be in the past" });
 
             if (obat.Stok < 0)
                 return BadRequest(new { error = "Invalid stock quantity" });
@@ -102,6 +98,20 @@ namespace ObatAPI.Controllers
         {
             try
             {
+                // Log ModelState errors
+                if (!ModelState.IsValid)
+                {
+                    foreach (var key in ModelState.Keys)
+                    {
+                        var errors = ModelState[key].Errors;
+                        foreach (var error in errors)
+                        {
+                            _logger.LogError($"Validation error for {key}: {error.ErrorMessage}");
+                        }
+                    }
+                    return BadRequest(ModelState);
+                }
+
                 var validationError = ValidateObat(obat, isCreate: true);
                 if (validationError != null) return validationError;
 
@@ -116,6 +126,7 @@ namespace ObatAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error creating obat");
                 return HandleError(ex, nameof(Create));
             }
         }
@@ -195,12 +206,18 @@ namespace ObatAPI.Controllers
                 {
                     { "Available", 0 },
                     { "LowStock", 0 },
+                    { "OutOfStock", 0 },
                     { "Expired", 0 }
                 };
 
                 foreach (var obat in obatList)
                 {
-                    string status = obat.Status ?? "Available";
+                    string status = obat.Status switch
+                    {
+                        ObatStatus.LowStock => "LowStock",
+                        ObatStatus.OutOfStock => "OutOfStock",
+                        _ => obat.Status.ToString()
+                    };
                     if (counterTable.ContainsKey(status))
                         counterTable[status]++;
                     else
@@ -211,6 +228,7 @@ namespace ObatAPI.Controllers
                 {
                     available = counterTable["Available"],
                     lowStock = counterTable["LowStock"],
+                    outOfStock = counterTable["OutOfStock"],
                     expired = counterTable["Expired"],
                     total = obatList.Count
                 });
@@ -230,8 +248,9 @@ namespace ObatAPI.Controllers
                 var rules = new object[]
                 {
                     new { id = 1, statusName = "Expired", priority = 1, conditionType = "ExpiredDate", op = "<", threshold = 0, colorCode = "#DC3545", description = "Obat sudah kadaluarsa" },
-                    new { id = 2, statusName = "LowStock", priority = 2, conditionType = "Stok", op = "<=", threshold = 5, colorCode = "#FFC107", description = "Stok obat menipis" },
-                    new { id = 3, statusName = "Available", priority = 3, conditionType = "None", op = "==", threshold = 0, colorCode = "#28A745", description = "Obat tersedia" }
+                    new { id = 2, statusName = "OutOfStock", priority = 2, conditionType = "Stok", op = "==", threshold = 0, colorCode = "#6C757D", description = "Stok obat habis" },
+                    new { id = 3, statusName = "LowStock", priority = 3, conditionType = "Stok", op = "<=", threshold = ObatConstants.LOW_STOCK_THRESHOLD, colorCode = "#FFC107", description = "Stok obat menipis" },
+                    new { id = 4, statusName = "Available", priority = 4, conditionType = "None", op = "==", threshold = 0, colorCode = "#28A745", description = "Obat tersedia" }
                 };
 
                 return Ok(new { rules = rules, version = "1.0" });

@@ -15,11 +15,13 @@ namespace ObatAPI.Services
                 return;
 
             if (obat.ExpiredDate.Date < DateTime.Now.Date)
-                obat.Status = "Expired";
-            else if (obat.Stok <= 5)
-                obat.Status = "LowStock";
+                obat.Status = ObatStatus.Expired;
+            else if (obat.Stok <= 0)
+                obat.Status = ObatStatus.OutOfStock;
+            else if (obat.Stok <= ObatConstants.LOW_STOCK_THRESHOLD)
+                obat.Status = ObatStatus.LowStock;
             else
-                obat.Status = "Available";
+                obat.Status = ObatStatus.Available;
         }
     }
 }

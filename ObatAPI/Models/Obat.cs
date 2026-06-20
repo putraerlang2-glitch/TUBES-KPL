@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using ObatAPI.Helpers;
 
 namespace ObatAPI.Models
 {
@@ -22,8 +24,8 @@ namespace ObatAPI.Models
         [Required(ErrorMessage = "Tanggal kadaluarsa harus diisi")]
         public DateTime ExpiredDate { get; set; }
 
-        [StringLength(50)]
-        public string Status { get; set; } = "Available";
+        [JsonConverter(typeof(ObatStatusJsonConverter))]
+        public ObatStatus Status { get; set; } = ObatStatus.Available;
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
