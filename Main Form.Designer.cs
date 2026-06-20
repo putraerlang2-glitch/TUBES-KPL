@@ -36,6 +36,7 @@
             this.btnUpdate = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
             this.btnTransaksi = new System.Windows.Forms.Button();
+            this.btnHistory = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tblObat)).BeginInit();
             this.SuspendLayout();
             // 
@@ -127,12 +128,23 @@
             this.btnTransaksi.UseVisualStyleBackColor = true;
             this.btnTransaksi.Click += new System.EventHandler(this.btnTransaksi_Click);
             // 
+            // btnHistory
+            // 
+            this.btnHistory.Location = new System.Drawing.Point(391, 352);
+            this.btnHistory.Name = "btnHistory";
+            this.btnHistory.Size = new System.Drawing.Size(249, 26);
+            this.btnHistory.TabIndex = 8;
+            this.btnHistory.Text = "Histori Transaksi";
+            this.btnHistory.UseVisualStyleBackColor = true;
+            this.btnHistory.Click += new System.EventHandler(this.btnHistory_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(765, 505);
             this.Controls.Add(this.btnTransaksi);
+            this.Controls.Add(this.btnHistory);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.btnUpdate);
             this.Controls.Add(this.btnHapus);
@@ -160,6 +172,7 @@
         private System.Windows.Forms.Button btnUpdate;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button btnTransaksi;
+        private System.Windows.Forms.Button btnHistory;
     }
 }
 

@@ -142,6 +142,16 @@ namespace TubesKPL
                     await client.CheckoutTransaksiAsync(dto);
                 }
 
+                // Simpan histori transaksi lokal
+                try
+                {
+                    TransactionHistoryService.AppendTransaction(dto);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[History Save Error] {ex.Message}");
+                }
+
                 foreach (var item in keranjang)
                 {
                     item.Obat.Stok -= item.Jumlah;

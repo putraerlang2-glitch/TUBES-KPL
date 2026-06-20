@@ -118,7 +118,7 @@ namespace TubesKPL
             }
 
             Obat selectedObat = daftarObat[selectedIndex];
-            Form2 f2 = new Form2(selectedObat);
+            FormUpdateObat f2 = new FormUpdateObat(selectedObat);
             if (f2.ShowDialog() != DialogResult.OK) return;
 
             try
@@ -168,6 +168,7 @@ namespace TubesKPL
         }
 
         private void btnTransaksi_Click(object sender, EventArgs e) => new FormTransaksi(daftarObat, this).Show();
+        private void btnHistory_Click(object sender, EventArgs e) => new FormHistory().Show();
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
         private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
     }
