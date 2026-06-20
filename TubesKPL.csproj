@@ -52,6 +52,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormHistory.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormHistory.Designer.cs">
+      <DependentUpon>FormHistory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormUpdateObat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormUpdateObat.Designer.cs">
+      <DependentUpon>FormUpdateObat.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormTransaksi.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -71,13 +83,8 @@
     <Compile Include="RuntimeConfig.cs" />
     <Compile Include="StateMachine.cs" />
     <Compile Include="StrukGenerator.cs" />
+    <Compile Include="TransactionHistoryService.cs" />
     <Compile Include="TransaksiValidator.cs" />
-    <Compile Include="Update Form.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Update Form.Designer.cs">
-      <DependentUpon>Update Form.cs</DependentUpon>
-    </Compile>
     <Compile Include="FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -105,11 +112,11 @@
     <EmbeddedResource Include="FormTransaksi.resx">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormUpdateObat.resx">
+      <DependentUpon>FormUpdateObat.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Main Form.resx">
       <DependentUpon>Main Form.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Update Form.resx">
-      <DependentUpon>Update Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormLogin.resx">
       <DependentUpon>FormLogin.cs</DependentUpon>
