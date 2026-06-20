@@ -98,5 +98,7 @@ namespace ObatAPI.Controllers
                 }
             });
         }
+
+        // GET endpoint for listing transaksi was removed per request to undo MySQL history retrieval.
     }
 }

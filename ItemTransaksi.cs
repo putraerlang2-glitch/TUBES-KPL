@@ -11,8 +11,21 @@ namespace TubesKPL
         public Obat Obat { get; set; }
         public int Jumlah { get; set; }
 
+        public Obat obat
+        {
+            get => Obat;
+            set => Obat = value;
+        }
+
+        public int jumlah
+        {
+            get => Jumlah;
+            set => Jumlah = value;
+        }
+
         public decimal Subtotal()
         {
+            if (Obat == null) throw new ArgumentNullException(nameof(Obat));
             return Obat.Harga * Jumlah;
         }
     }
