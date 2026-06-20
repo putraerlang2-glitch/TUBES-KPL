@@ -27,12 +27,12 @@ namespace ObatAPI.Services
 
                     var sampleData = new List<Obat>
                     {
-                        new Obat { Nama = "Paracetamol", Kategori = "Tablet", Stok = 100, Harga = 5000, ExpiredDate = DateTime.Now.AddYears(1), Status = "Available" },
-                        new Obat { Nama = "Ibuprofen", Kategori = "Tablet", Stok = 12, Harga = 7000, ExpiredDate = DateTime.Now.AddMonths(6), Status = "Available" },
-                        new Obat { Nama = "Sanmol", Kategori = "Sirup", Stok = 15, Harga = 3000, ExpiredDate = DateTime.Now.AddMonths(4), Status = "Available" },
-                        new Obat { Nama = "HRIG", Kategori = "Injeksi", Stok = 12, Harga = 20000, ExpiredDate = DateTime.Now.AddMonths(2), Status = "Available" },
-                        new Obat { Nama = "Amoxicillin", Kategori = "Tablet", Stok = 5, Harga = 10000, ExpiredDate = DateTime.Now.AddMonths(6), Status = "LowStock" },
-                        new Obat { Nama = "Vitamin C", Kategori = "Tablet", Stok = 0, Harga = 500, ExpiredDate = DateTime.Now.AddDays(-1), Status = "Expired" }
+                        new Obat { Nama = "Paracetamol", Kategori = "Tablet", Stok = 100, Harga = 5000, ExpiredDate = DateTime.Now.AddYears(1), Status = ObatStatus.Available },
+                        new Obat { Nama = "Ibuprofen", Kategori = "Tablet", Stok = 12, Harga = 7000, ExpiredDate = DateTime.Now.AddMonths(6), Status = ObatStatus.Available },
+                        new Obat { Nama = "Sanmol", Kategori = "Sirup", Stok = 15, Harga = 3000, ExpiredDate = DateTime.Now.AddMonths(4), Status = ObatStatus.Available },
+                        new Obat { Nama = "HRIG", Kategori = "Injeksi", Stok = 12, Harga = 20000, ExpiredDate = DateTime.Now.AddMonths(2), Status = ObatStatus.Available },
+                        new Obat { Nama = "Amoxicillin", Kategori = "Tablet", Stok = 5, Harga = 10000, ExpiredDate = DateTime.Now.AddMonths(6), Status = ObatStatus.LowStock },
+                        new Obat { Nama = "Vitamin C", Kategori = "Tablet", Stok = 0, Harga = 500, ExpiredDate = DateTime.Now.AddDays(-1), Status = ObatStatus.Expired }
                     };
 
                     dbContext.Obat.AddRange(sampleData);
