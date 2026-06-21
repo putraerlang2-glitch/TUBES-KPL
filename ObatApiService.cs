@@ -1,9 +1,11 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace TubesKPL
 {
+    // [KISS] Service ini hanya menyimpan data obat sementara dari API agar Form tidak langsung memegang semua proses.
     public static class ObatApiService
     {
         private static List<Obat> _obatList = new List<Obat>();
@@ -12,13 +14,25 @@ namespace TubesKPL
         public static void Initialize(List<Obat> sourceData)
         {
             _obatList.Clear();
-            if (sourceData != null) _obatList.AddRange(sourceData);
+            // Jika sourceData null, gunakan list kosong untuk keamanan
+            if (sourceData != null)
+            {
+                // Tambahkan hanya item yang tidak null
+                _obatList.AddRange(sourceData.Where(o => o != null));
+            }
             _initialized = true;
         }
 
         public static List<Obat> GetAll()
         {
-            foreach (var obat in _obatList) obat.UpdateStatus();
+            foreach (var obat in _obatList)
+            {
+                // Hindari null reference jika ada item yang null di list
+                if (obat != null)
+                {
+                    obat.UpdateStatus();
+                }
+            }
             return _obatList;
         }
 
