@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 
 namespace TubesKPL
 {
+    // [FACADE PATTERN] Class ini membungkus detail HttpClient agar Form tidak perlu tahu detail HTTP.
     public class ObatApiClient : IDisposable
     {
         private const string DefaultBaseUrl = "https://localhost:7245";
@@ -23,7 +25,8 @@ namespace TubesKPL
             _baseUrl = baseUrl;
             var handler = new HttpClientHandler
             {
-                // ⚠️ HANYA UNTUK DEVELOPMENT! Hapus baris ini untuk production!
+                // ⚠️ HANYA UNTUK DEVELOPMENT! Jangan gunakan di production!
+                // Bypass SSL certificate validation hanya untuk localhost/127.0.0.1
                 ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
                     errors == System.Net.Security.SslPolicyErrors.None || _baseUrl.Contains("localhost") || _baseUrl.Contains("127.0.0.1")
             };
@@ -49,14 +52,16 @@ namespace TubesKPL
         {
             try
             {
-                if (obatId <= 0) throw new ArgumentException("ID must be positive");
+                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
 
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/{obatId}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) throw new Exception("Medicine not found");
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<Obat>(json);
+                var obat = JsonConvert.DeserializeObject<Obat>(json);
+                if (obat == null) throw new Exception("Invalid response from server");
+                return obat;
             }
             catch (Exception ex) { throw new Exception($"Failed to fetch medicine: {ex.Message}", ex); }
         }
@@ -72,7 +77,9 @@ namespace TubesKPL
                 response.EnsureSuccessStatusCode();
 
                 var resultJson = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<Obat>(resultJson);
+                var resultObat = JsonConvert.DeserializeObject<Obat>(resultJson);
+                if (resultObat == null) throw new Exception("Invalid response from server");
+                return resultObat;
             }
             catch (Exception ex) { throw new Exception($"Failed to add medicine: {ex.Message}", ex); }
         }
@@ -81,14 +88,18 @@ namespace TubesKPL
         {
             try
             {
-                if (obatId <= 0 || obat == null) throw new ArgumentException("Invalid parameters");
+                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+                if (obat == null) throw new ArgumentNullException(nameof(obat));
+                
                 var json = JsonConvert.SerializeObject(obat);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PutAsync($"{_baseUrl}/api/obat/{obatId}", content);
                 response.EnsureSuccessStatusCode();
 
                 var resultJson = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<Obat>(resultJson);
+                var resultObat = JsonConvert.DeserializeObject<Obat>(resultJson);
+                if (resultObat == null) throw new Exception("Invalid response from server");
+                return resultObat;
             }
             catch (Exception ex) { throw new Exception($"Failed to update medicine: {ex.Message}", ex); }
         }
@@ -97,7 +108,7 @@ namespace TubesKPL
         {
             try
             {
-                if (obatId <= 0) throw new ArgumentException("ID must be positive");
+                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
                 var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/obat/{obatId}");
                 return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
             }
@@ -108,7 +119,11 @@ namespace TubesKPL
         {
             try
             {
-                if (transaksi?.DetailList?.Count == 0) throw new ArgumentException("Transaction data required");
+                // Validasi eksplisit agar lebih aman
+                if (transaksi == null) throw new ArgumentNullException(nameof(transaksi));
+                if (transaksi.DetailList == null) throw new ArgumentException("Transaction detail list is required");
+                if (transaksi.DetailList.Count == 0) throw new ArgumentException("Transaction must have at least one item");
+
                 var json = JsonConvert.SerializeObject(transaksi);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/transaksi", content);
@@ -120,20 +135,39 @@ namespace TubesKPL
 
         public async Task<string> GetStatusRulesAsync()
         {
-            try { var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/rules"); return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; }
-            catch { return null; }
+            try 
+            { 
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/rules"); 
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetStatusRulesAsync] Error: {ex.Message}");
+                return null;
+            }
         }
 
         public async Task<string> GetStatusSummaryAsync()
         {
-            try { var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/summary"); return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; }
-            catch { return null; }
+            try 
+            { 
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/summary"); 
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetStatusSummaryAsync] Error: {ex.Message}");
+                return null;
+            }
         }
 
         public async Task<UserDTO> LoginAsync(string username, string password)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+                if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+
                 var request = new { Username = username, Password = password };
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -145,7 +179,9 @@ namespace TubesKPL
                 response.EnsureSuccessStatusCode();
                 
                 var resultJson = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                var user = JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                if (user == null) throw new Exception("Invalid response from server");
+                return user;
             }
             catch (Exception ex)
             {
@@ -157,6 +193,10 @@ namespace TubesKPL
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+                if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+                if (string.IsNullOrWhiteSpace(nama)) throw new ArgumentException("Nama cannot be empty", nameof(nama));
+
                 var request = new { Username = username, Password = password, Nama = nama, Role = role };
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -168,7 +208,9 @@ namespace TubesKPL
                 response.EnsureSuccessStatusCode();
                 
                 var resultJson = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                var user = JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                if (user == null) throw new Exception("Invalid response from server");
+                return user;
             }
             catch (Exception ex)
             {
@@ -183,7 +225,7 @@ namespace TubesKPL
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/user");
                 response.EnsureSuccessStatusCode();
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<List<UserDTO>>(json);
+                return JsonConvert.DeserializeObject<List<UserDTO>>(json) ?? new List<UserDTO>();
             }
             catch (Exception ex)
             {
@@ -194,6 +236,7 @@ namespace TubesKPL
         public void Dispose() => _httpClient?.Dispose();
     }
 
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
     public class UserDTO
     {
         public int UserId { get; set; }
@@ -202,6 +245,7 @@ namespace TubesKPL
         public string Role { get; set; } = string.Empty;
     }
 
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
     public class TransaksiDTO
     {
         public string NoStruk { get; set; } = string.Empty;
@@ -218,6 +262,7 @@ namespace TubesKPL
         public List<TransaksiDetailDTO> DetailList { get; set; } = new List<TransaksiDetailDTO>();
     }
 
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
     public class TransaksiDetailDTO
     {
         public int ObatId { get; set; }
@@ -226,6 +271,7 @@ namespace TubesKPL
         public decimal Subtotal { get; set; }
     }
 
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
     public class ApiResponse<T>
     {
         public T Data { get; set; }

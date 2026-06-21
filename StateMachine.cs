@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,6 +21,8 @@ namespace TubesKPL
             public Func<Obat, bool> Condition { get; set; }
         }
 
+        // [TABLE-DRIVEN METHOD] Aturan status disimpan dalam tabel agar tidak perlu if-else panjang.
+        // [LIGHTWEIGHT STRATEGY] Setiap Condition adalah strategi pengecekan status.
         private static readonly StatusConfig[] StatusTable = new[]
         {
             new StatusConfig { Name = STATUS_EXPIRED, Color = Color.FromArgb(220, 53, 69), Condition = o => o.ExpiredDate < DateTime.Now },
@@ -29,17 +32,28 @@ namespace TubesKPL
 
         public static void EvaluateStatus(Obat obat)
         {
-            if (obat != null) obat.Status = StatusTable.First(cfg => cfg.Condition(obat)).Name;
+            // Guard clause: pastikan obat tidak null
+            if (obat == null) return;
+            obat.Status = StatusTable.First(cfg => cfg.Condition(obat)).Name;
         }
 
-        public static Color GetStatusColor(string status) => StatusTable.FirstOrDefault(cfg => cfg.Name == status)?.Color ?? Color.White;
+        public static Color GetStatusColor(string status)
+        {
+            // Guard clause: pastikan status tidak null/kosong
+            if (string.IsNullOrWhiteSpace(status)) return Color.White;
+            return StatusTable.FirstOrDefault(cfg => cfg.Name == status)?.Color ?? Color.White;
+        }
 
         public static void ApplyStatusColors(DataGridView grid, int colIndex = 4)
         {
-            if (grid?.Rows.Count == 0) return;
+            // Guard clauses untuk keamanan
+            if (grid == null) return;
+            if (colIndex < 0 || colIndex >= grid.Columns.Count) return;
+            if (grid.Rows.Count == 0) return;
 
             foreach (DataGridViewRow row in grid.Rows)
             {
+                if (row.Cells.Count <= colIndex) continue;
                 string status = row.Cells[colIndex].Value?.ToString() ?? STATUS_AVAILABLE;
                 row.DefaultCellStyle.BackColor = GetStatusColor(status);
             }
@@ -48,15 +62,21 @@ namespace TubesKPL
         public static void GetStatusCounts(List<Obat> list, out int available, out int lowStock, out int expired)
         {
             available = lowStock = expired = 0;
+            // Guard clause: pastikan list tidak null
             if (list == null) return;
 
-            available = list.Count(o => o.Status == STATUS_AVAILABLE);
-            lowStock = list.Count(o => o.Status == STATUS_LOW_STOCK);
-            expired = list.Count(o => o.Status == STATUS_EXPIRED);
+            // Filter hanya item valid untuk menghindari null reference
+            var validList = list.Where(o => o != null).ToList();
+            available = validList.Count(o => o.Status == STATUS_AVAILABLE);
+            lowStock = validList.Count(o => o.Status == STATUS_LOW_STOCK);
+            expired = validList.Count(o => o.Status == STATUS_EXPIRED);
         }
 
         public static void ShowNotifications(List<Obat> list)
         {
+            // Guard clause: pastikan list tidak null
+            if (list == null) return;
+
             GetStatusCounts(list, out _, out var low, out var exp);
             if (exp + low == 0) return;
 
@@ -66,6 +86,8 @@ namespace TubesKPL
 
         public static string FormatTitleWithStats(string baseTitle, List<Obat> list)
         {
+            // Guard clause: pastikan baseTitle tidak null
+            if (baseTitle == null) baseTitle = "";
             if (list == null) return baseTitle;
             GetStatusCounts(list, out var avail, out var low, out var exp);
             return $"{baseTitle} - 🟢 {avail} | 🟡 {low} | 🔴 {exp}";
