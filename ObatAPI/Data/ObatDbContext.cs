@@ -59,8 +59,13 @@ namespace ObatAPI.Data
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
                 entity.Property(e => e.UpdatedAt).HasColumnName("updated_at").HasColumnType("TIMESTAMP").HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
 
+                // Soft delete properties
+                entity.Property(e => e.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
+                entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+
                 entity.HasIndex(e => e.Status).HasDatabaseName("idx_obat_status");
                 entity.HasIndex(e => e.ExpiredDate).HasDatabaseName("idx_obat_expired");
+                entity.HasIndex(e => e.IsDeleted).HasDatabaseName("idx_obat_is_deleted");
             });
 
             // --- TABEL TRANSAKSI ---
