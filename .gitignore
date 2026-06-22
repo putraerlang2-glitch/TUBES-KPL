@@ -1,3 +1,16 @@
 .vs
 bin
 obj
+# Local documentation / temporary notes
+*.md
+
+# SQL local/manual script
+*.sql
+
+# Visual Studio user/local files
+*.user
+*.slnLaunch.user
+testEnvironments.json
+
+# Diagnostic/session files
+*.diagsession

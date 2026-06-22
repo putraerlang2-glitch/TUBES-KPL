@@ -50,10 +50,10 @@ namespace TubesKPL
 
         public async Task<Obat> GetObatByIdAsync(int obatId)
         {
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+
             try
             {
-                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
-
                 var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/{obatId}");
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound) throw new Exception("Medicine not found");
                 response.EnsureSuccessStatusCode();
@@ -68,9 +68,10 @@ namespace TubesKPL
 
         public async Task<Obat> AddObatAsync(Obat obat)
         {
+            if (obat == null) throw new ArgumentNullException(nameof(obat));
+
             try
             {
-                if (obat == null) throw new ArgumentNullException(nameof(obat));
                 var json = JsonConvert.SerializeObject(obat);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/obat", content);
@@ -86,11 +87,11 @@ namespace TubesKPL
 
         public async Task<Obat> UpdateObatAsync(int obatId, Obat obat)
         {
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+            if (obat == null) throw new ArgumentNullException(nameof(obat));
+
             try
             {
-                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
-                if (obat == null) throw new ArgumentNullException(nameof(obat));
-                
                 var json = JsonConvert.SerializeObject(obat);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PutAsync($"{_baseUrl}/api/obat/{obatId}", content);
@@ -106,9 +107,10 @@ namespace TubesKPL
 
         public async Task<bool> DeleteObatAsync(int obatId)
         {
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+
             try
             {
-                if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
                 var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/obat/{obatId}");
                 return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
             }
@@ -117,13 +119,12 @@ namespace TubesKPL
 
         public async Task<bool> CheckoutTransaksiAsync(TransaksiDTO transaksi)
         {
+            if (transaksi == null) throw new ArgumentNullException(nameof(transaksi));
+            if (transaksi.DetailList == null) throw new ArgumentException("Transaction detail list is required", nameof(transaksi));
+            if (transaksi.DetailList.Count == 0) throw new ArgumentException("Transaction must have at least one item", nameof(transaksi));
+
             try
             {
-                // Validasi eksplisit agar lebih aman
-                if (transaksi == null) throw new ArgumentNullException(nameof(transaksi));
-                if (transaksi.DetailList == null) throw new ArgumentException("Transaction detail list is required");
-                if (transaksi.DetailList.Count == 0) throw new ArgumentException("Transaction must have at least one item");
-
                 var json = JsonConvert.SerializeObject(transaksi);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/transaksi", content);
@@ -163,11 +164,11 @@ namespace TubesKPL
 
         public async Task<UserDTO> LoginAsync(string username, string password)
         {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+
             try
             {
-                if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
-                if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
-
                 var request = new { Username = username, Password = password };
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -189,14 +190,14 @@ namespace TubesKPL
             }
         }
 
-        public async Task<UserDTO> RegisterAsync(string username, string password, string nama, string? role = null)
+        public async Task<UserDTO> RegisterAsync(string username, string password, string nama, string role = null)
         {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+            if (string.IsNullOrWhiteSpace(nama)) throw new ArgumentException("Nama cannot be empty", nameof(nama));
+
             try
             {
-                if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
-                if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
-                if (string.IsNullOrWhiteSpace(nama)) throw new ArgumentException("Nama cannot be empty", nameof(nama));
-
                 var request = new { Username = username, Password = password, Nama = nama, Role = role };
                 var json = JsonConvert.SerializeObject(request);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");

@@ -26,6 +26,13 @@ namespace TubesKPL
         [JsonProperty("status")]
         public string Status { get; set; } = "Available";
 
+        // Soft delete properties (for API compatibility)
+        [JsonProperty("isDeleted")]
+        public bool IsDeleted { get; set; } = false;
+
+        [JsonProperty("deletedAt")]
+        public DateTime? DeletedAt { get; set; }
+
         public Obat() => ExpiredDate = DateTime.Now.AddYears(1);
 
         public Obat(string nama, int stok, decimal harga, DateTime expiredDate, string kategori = "Tablet", int obatId = 0)

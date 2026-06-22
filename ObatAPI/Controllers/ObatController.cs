@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 using ObatAPI.Data;
 using ObatAPI.Models;
 using ObatAPI.Services;
@@ -13,12 +15,44 @@ namespace ObatAPI.Controllers
         private readonly ObatDbContext _dbContext;
         private readonly IObatStatusService _statusService;
         private readonly ILogger<ObatController> _logger;
+        private readonly string _connectionString;
 
-        public ObatController(ObatDbContext dbContext, IObatStatusService statusService, ILogger<ObatController> logger)
+        public ObatController(ObatDbContext dbContext, IObatStatusService statusService, ILogger<ObatController> logger, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _statusService = statusService;
             _logger = logger;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+        
+        private void LogActivity(string activityType, string description, int? userId = null, int? obatId = null, int? transaksiId = null)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    const string query = @"
+                        INSERT INTO activity_history 
+                        (user_id, transaksi_id, obat_id, activity_type, activity_description, created_at) 
+                        VALUES 
+                        (@userId, @transaksiId, @obatId, @activityType, @description, NOW())";
+                    
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@userId", userId.HasValue ? (object)userId.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@transaksiId", transaksiId.HasValue ? (object)transaksiId.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@obatId", obatId.HasValue ? (object)obatId.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@activityType", activityType);
+                        cmd.Parameters.AddWithValue("@description", string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Gagal mencatat activity log");
+            }
         }
 
         private IActionResult HandleError(Exception ex, string action)
@@ -51,8 +85,9 @@ namespace ObatAPI.Controllers
                 if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
                 int skip = (page - 1) * pageSize;
-                var totalCount = await _dbContext.Obat.CountAsync();
-                var obatList = await _dbContext.Obat.OrderBy(o => o.Nama)
+                var query = _dbContext.Obat.Where(o => !o.IsDeleted);
+                var totalCount = await query.CountAsync();
+                var obatList = await query.OrderBy(o => o.Nama)
                     .Skip(skip)
                     .Take(pageSize)
                     .ToListAsync();
@@ -80,7 +115,7 @@ namespace ObatAPI.Controllers
                 if (obatId <= 0)
                     return BadRequest(new { error = "Invalid ID" });
 
-                var obat = await _dbContext.Obat.FindAsync(obatId);
+                var obat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 
@@ -121,6 +156,8 @@ namespace ObatAPI.Controllers
 
                 _dbContext.Obat.Add(obat);
                 await _dbContext.SaveChangesAsync();
+                
+                LogActivity("TAMBAH_OBAT", $"Menambahkan obat: {obat.Nama}", obatId: obat.ObatId);
 
                 return CreatedAtAction(nameof(GetById), new { obatId = obat.ObatId }, obat);
             }
@@ -145,7 +182,7 @@ namespace ObatAPI.Controllers
                 var validationError = ValidateObat(obat);
                 if (validationError != null) return validationError;
 
-                var existingObat = await _dbContext.Obat.FindAsync(obatId);
+                var existingObat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (existingObat == null)
                     return NotFound(new { error = "Obat not found" });
 
@@ -160,6 +197,8 @@ namespace ObatAPI.Controllers
 
                 _dbContext.Obat.Update(existingObat);
                 await _dbContext.SaveChangesAsync();
+                
+                LogActivity("UPDATE_OBAT", $"Mengubah data obat: {existingObat.Nama}", obatId: existingObat.ObatId);
 
                 return Ok(existingObat);
             }
@@ -177,12 +216,15 @@ namespace ObatAPI.Controllers
                 if (obatId <= 0)
                     return BadRequest(new { error = "Invalid ID" });
 
-                var obat = await _dbContext.Obat.FindAsync(obatId);
+                var obat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 
-                _dbContext.Obat.Remove(obat);
+                obat.IsDeleted = true;
+                obat.DeletedAt = DateTime.Now;
                 await _dbContext.SaveChangesAsync();
+                
+                LogActivity("HAPUS_OBAT", $"Menghapus obat dari tampilan: {obat.Nama}", obatId: obat.ObatId);
 
                 return NoContent();
             }
@@ -197,7 +239,7 @@ namespace ObatAPI.Controllers
         {
             try
             {
-                var obatList = await _dbContext.Obat.ToListAsync();
+                var obatList = await _dbContext.Obat.Where(o => !o.IsDeleted).ToListAsync();
 
                 foreach (var obat in obatList)
                     _statusService.EvaluateStatus(obat);

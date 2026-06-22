@@ -161,6 +161,9 @@ namespace TubesKPL
                 StrukGenerator.GenerateStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
 
                 MessageBox.Show("Transaksi Berhasil disimpan ke MySQL!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                
+                // Log activity
+                ActivityHistoryService.LogActivity("TRANSAKSI", $"Transaksi berhasil dengan total: {dto.TotalAkhir:C}", userId: dto.UserId);
 
                 keranjang.Clear();
                 RefreshKeranjang();
