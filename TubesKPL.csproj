@@ -76,6 +76,7 @@
     <Compile Include="FormTransaksi.Designer.cs">
       <DependentUpon>FormTransaksi.cs</DependentUpon>
     </Compile>
+    <Compile Include="GenericHelper.cs" />
     <Compile Include="ItemTransaksi.cs" />
     <Compile Include="ItemTransaksiFactory.cs" />
     <Compile Include="Main Form.cs">
@@ -86,6 +87,8 @@
     </Compile>
     <Compile Include="Obat.cs" />
     <Compile Include="ObatApiClient.cs" />
+    <Compile Include="ObatFactory.cs" />
+    <Compile Include="ObatValidator.cs" />
     <Compile Include="RuntimeConfig.cs" />
     <Compile Include="StateMachine.cs" />
     <Compile Include="StrukGenerator.cs" />
