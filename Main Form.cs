@@ -49,16 +49,20 @@ namespace TubesKPL
             foreach (var obat in data) StateMachine.EvaluateStatus(obat);
             DataTable dt = new DataTable();
             dt.Columns.AddRange(new DataColumn[] {
-                new DataColumn("Nama Obat"),
-                new DataColumn("Kategori"),
-                new DataColumn("Stok"),
-                new DataColumn("Harga"),
-                new DataColumn("Tanggal Expired"),
-                new DataColumn("Status")
-            });
+            new DataColumn("Nama Obat"),
+            new DataColumn("Kategori"),
+            new DataColumn("Stok"),
+            new DataColumn("Harga"),
+            new DataColumn("Tanggal Expired"),
+            new DataColumn("Status"),
+            new DataColumn("Kolom 1"),      // ← TAMBAH INI
+            new DataColumn("Kolom 2")       // ← TAMBAH INI
+    });
 
             foreach (var obat in data)
-                dt.Rows.Add(obat.Nama, obat.Kategori, obat.Stok, obat.Harga.ToString(CURRENCY_FORMAT), obat.ExpiredDate.ToString(DATE_FORMAT), obat.Status);
+                dt.Rows.Add(obat.Nama, obat.Kategori, obat.Stok, obat.Harga.ToString(CURRENCY_FORMAT), obat.ExpiredDate.ToString(DATE_FORMAT), obat.Status, "", "");
+            //                                                                                                                                            ↑     ↑
+            //                                                                                            TAMBAH 2 STRING KOSONG INI (untuk 2 kolom baru)
 
             tblObat.DataSource = dt;
             StateMachine.ApplyStatusColors(tblObat, 5);
