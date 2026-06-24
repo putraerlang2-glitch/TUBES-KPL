@@ -68,8 +68,8 @@ namespace TubesKPL
         {
             foreach (var item in keranjang)
             {
-                sb.AppendLine(item.obat.nama);
-                sb.AppendLine($"{item.jumlah} x {FormatCurrency(item.obat.harga)} = {FormatCurrency(item.Subtotal())}");
+                sb.AppendLine(item.obat.Nama);
+                sb.AppendLine($"{item.jumlah} x {FormatCurrency(item.obat.Harga)} = {FormatCurrency(item.Subtotal())}");
             }
         }
 
