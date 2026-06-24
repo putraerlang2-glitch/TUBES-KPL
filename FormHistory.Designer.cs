@@ -194,7 +194,7 @@ namespace TubesKPL
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.tblHistory);
             this.Name = "FormHistory";
-            this.Text = "Histori Transaksi";
+            this.Text = "Histori";
             ((System.ComponentModel.ISupportInitialize)(this.tblHistory)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -1,4 +1,4 @@
-﻿namespace TubesKPL
+namespace TubesKPL
 {
     partial class Form1
     {
@@ -141,7 +141,7 @@
             this.btnHistory.Name = "btnHistory";
             this.btnHistory.Size = new System.Drawing.Size(116, 21);
             this.btnHistory.TabIndex = 8;
-            this.btnHistory.Text = "Histori Transaksi";
+            this.btnHistory.Text = "Histori";
             this.btnHistory.UseVisualStyleBackColor = true;
             this.btnHistory.Click += new System.EventHandler(this.btnHistory_Click);
             // 
