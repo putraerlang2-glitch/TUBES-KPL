@@ -33,10 +33,57 @@ namespace TubesKPL
         }
 
     private void TampikanPesanLabel(string pesan, Color warna)
-    {
-        label8.Text = pesan;
-        label8.ForeColor = warna;
-    }
+        {
+            label8.Text = pesan;
+            label8.ForeColor = warna;
+        }
+
+        private void TampilkanStruk(string isiStruk)
+        {
+            Form formStruk = new Form
+            {
+                Text = "Struk Transaksi",
+                Width = 500,
+                Height = 600,
+                StartPosition = FormStartPosition.CenterParent,
+                Icon = this.Icon,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = true
+            };
+
+            TextBox textBoxStruk = new TextBox
+            {
+                Text = isiStruk,
+                Multiline = true,
+                ReadOnly = true,
+                Dock = DockStyle.Fill,
+                Font = new Font("Courier New", 9),
+                ScrollBars = ScrollBars.Both
+            };
+
+            Panel panelButton = new Panel
+            {
+                Height = 50,
+                Dock = DockStyle.Bottom,
+                BackColor = SystemColors.Control
+            };
+
+            Button btnTutup = new Button
+            {
+                Text = "Tutup",
+                Width = 100,
+                Height = 35,
+                Left = 190,
+                Top = 7,
+                DialogResult = DialogResult.OK
+            };
+
+            panelButton.Controls.Add(btnTutup);
+            formStruk.Controls.Add(panelButton);
+            formStruk.Controls.Add(textBoxStruk);
+            formStruk.ShowDialog(this);
+        }
 
         private void txtCariInputan_TextChanged(object sender, EventArgs e) { }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) { }
@@ -44,28 +91,80 @@ namespace TubesKPL
         private void label4_Click(object sender, EventArgs e) { }
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) { }
 
+        private const string CONFIG_EMPTY_WARNING = "Kotak Pajak dan Diskon harus diisi angka dulu ya!";
+        private const string CONFIG_INVALID_FORMAT = "Tolong masukkan format angka yang benar ya!";
+        private const string CONFIG_SUCCESS_TITLE = "Config Berhasil";
+        private const string DIALOG_WARNING_TITLE = "Peringatan";
+        private const string DIALOG_ERROR_TITLE = "Error";
+
         private void BtnUbahConfig_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TBPajak.Text) || string.IsNullOrWhiteSpace(TBDiskon.Text))
+            if (!ValidateConfigInput(TBPajak.Text, TBDiskon.Text))
             {
-                MessageBox.Show("Kotak Pajak dan Diskon harus diisi angka dulu ya!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (decimal.TryParse(TBPajak.Text, out decimal pajakInput) &&
-                decimal.TryParse(TBDiskon.Text, out decimal diskonInput))
+            if (TryParseAndUpdateConfig(TBPajak.Text, TBDiskon.Text, out decimal pajakInput, out decimal diskonInput))
             {
-                decimal pajakDesimal = pajakInput / 100m;
-                decimal diskonDesimal = diskonInput / 100m;
-
-                RuntimeConfig.UpdateConfig(pajakDesimal, diskonDesimal);
-
-                MessageBox.Show($"Mantap! Konfigurasi berhasil diubah secara Runtime.\nPajak Baru: {pajakInput}%\nDiskon Baru: {diskonInput}%\n\nSilakan klik 'Bayar' untuk melihat perubahannya pada total belanja.", "Config Berhasil", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowConfigSuccessMessage(pajakInput, diskonInput);
             }
             else
             {
-                MessageBox.Show("Tolong masukkan format angka yang benar ya!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowErrorMessage(CONFIG_INVALID_FORMAT, DIALOG_ERROR_TITLE);
             }
+        }
+
+        private bool ValidateConfigInput(string pajakText, string diskonText)
+        {
+            if (string.IsNullOrWhiteSpace(pajakText) || string.IsNullOrWhiteSpace(diskonText))
+            {
+                ShowWarningMessage(CONFIG_EMPTY_WARNING, DIALOG_WARNING_TITLE);
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryParseAndUpdateConfig(string pajakText, string diskonText, out decimal pajakInput, out decimal diskonInput)
+        {
+            pajakInput = 0m;
+            diskonInput = 0m;
+
+            if (!decimal.TryParse(pajakText, out pajakInput) || !decimal.TryParse(diskonText, out diskonInput))
+            {
+                return false;
+            }
+
+            decimal pajakDesimal = ConvertPercentageToDecimal(pajakInput);
+            decimal diskonDesimal = ConvertPercentageToDecimal(diskonInput);
+
+            RuntimeConfig.UpdateConfig(pajakDesimal, diskonDesimal);
+            return true;
+        }
+
+        private decimal ConvertPercentageToDecimal(decimal percentage)
+        {
+            return percentage / 100m;
+        }
+
+        private void ShowConfigSuccessMessage(decimal pajak, decimal diskon)
+        {
+            string message = $"Mantap! Konfigurasi berhasil diubah secara Runtime.\n" +
+                           $"Pajak Baru: {pajak}%\n" +
+                           $"Diskon Baru: {diskon}%\n\n" +
+                           $"Silakan klik 'Bayar' untuk melihat perubahannya pada total belanja.";
+
+            MessageBox.Show(message, CONFIG_SUCCESS_TITLE, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ShowWarningMessage(string message, string title)
+        {
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void ShowErrorMessage(string message, string title)
+        {
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private async void BtnHitung_Click(object sender, EventArgs e)
@@ -158,9 +257,10 @@ namespace TubesKPL
                     item.Obat.UpdateStatus();
                 }
 
+                string struk = StrukGenerator.BuildStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
                 StrukGenerator.GenerateStruk(keranjang, subtotal, RuntimeConfig.PajakPPN, RuntimeConfig.DiskonAktif, grandTotal, uangBayar, kembalian);
 
-                MessageBox.Show("Transaksi Berhasil disimpan ke MySQL!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                TampilkanStruk(struk);
                 
                 // Log activity
                 ActivityHistoryService.LogActivity("TRANSAKSI", $"Transaksi berhasil dengan total: {dto.TotalAkhir:C}", userId: dto.UserId);
@@ -184,12 +284,31 @@ namespace TubesKPL
             dt.Columns.Add("Harga");
             dt.Columns.Add("Jumlah");
             dt.Columns.Add("Sub total");
+            dt.Columns.Add("Harga Akhir");
 
             foreach (var item in keranjang)
             {
-                dt.Rows.Add(item.Obat.Nama, item.Obat.Harga.ToString("C"), item.Jumlah, item.Subtotal().ToString("C"));
+                decimal subtotal = item.Subtotal();
+                decimal hargaAkhir = CalculateFinalPrice(subtotal);
+
+                dt.Rows.Add(
+                    item.Obat.Nama, 
+                    item.Obat.Harga.ToString("C"), 
+                    item.Jumlah, 
+                    subtotal.ToString("C"),
+                    hargaAkhir.ToString("C"));
             }
             TabelKeranjang.DataSource = dt;
+        }
+
+        private decimal CalculateFinalPrice(decimal subtotal)
+        {
+            decimal nominalDiskon = subtotal * RuntimeConfig.DiskonAktif;
+            decimal subtotalSetelahDiskon = subtotal - nominalDiskon;
+            decimal nominalPajak = subtotalSetelahDiskon * RuntimeConfig.PajakPPN;
+            decimal hargaAkhir = subtotalSetelahDiskon + nominalPajak;
+
+            return hargaAkhir;
         }
 
         private const string ADD_SUCCESS_MESSAGE = "Obat berhasil ditambahkan";
@@ -283,6 +402,16 @@ namespace TubesKPL
         }
 
         private void label8_Click_2(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click(object sender, EventArgs e)
         {
 
         }
