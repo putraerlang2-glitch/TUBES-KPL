@@ -1,10 +1,8 @@
-﻿using System;
+
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,202 +10,93 @@ namespace TubesKPL
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        List<Obat> daftarObat = new List<Obat>();
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
+        public Form1() => InitializeComponent();
+        public void RefreshData() => TampilkanData(daftarObat);
 
-        }
+        private async void Form1_Load(object sender, EventArgs e) => await LoadFromApi();
 
-        List<Obat> daftarObat = new List<Obat>()
+        private async Task LoadFromApi()
         {
-            new Obat("Paracetamol", 21, 5000, new DateTime(2025, 6, 15)),
-            new Obat("Ibuprofen", 17, 7000, new DateTime(2025, 8, 20)),
-            new Obat("Sanmol", 5, 3000, new DateTime(2024, 12, 31)),
-            new Obat("HRIG", 3, 20000, new DateTime(2024, 11, 10)),
-            new Obat("Influenza", 15, 2000, new DateTime(2025, 3, 15)),
-            new Obat("Jane Doe", 50, 500000, new DateTime(2026, 1, 1))
-        };
+            try
+            {
+                // [FACADE USAGE] Form mengambil data melalui ObatApiClient, bukan langsung memakai HttpClient.
+                using (var client = new ObatApiClient())
+                {
+                    Console.WriteLine("[Form1] Fetching data from API...");
+                    daftarObat = await client.GetAllObatAsync() ?? new List<Obat>();
+                    Console.WriteLine($"[Form1] Received {daftarObat.Count} items from API");
+                }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            TampilkanData(daftarObat);
-            TampilkanNotifikasi();
+                ObatApiService.Initialize(daftarObat);
+                TampilkanData(daftarObat);
+                StateMachine.ShowNotifications(daftarObat);
+                this.Text = StateMachine.FormatTitleWithStats("Form1", daftarObat);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Form1 Error] {ex.Message}");
+                MessageBox.Show($"Gagal memuat data dari API.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                daftarObat.Clear();
+                TampilkanData(daftarObat);
+            }
         }
 
         private void TampilkanData(List<Obat> data)
         {
-            // Update status semua obat
-            foreach (var obat in data)
-            {
-                obat.UpdateStatus();
-            }
+            // Guard clause: jika data null, gunakan list kosong
+            var safeData = data ?? new List<Obat>();
 
-            // Buat DataTable untuk menampilkan data
             DataTable dt = new DataTable();
-            dt.Columns.Add("Nama Obat");
-            dt.Columns.Add("Stok");
-            dt.Columns.Add("Harga");
-            dt.Columns.Add("Tanggal Expired");
-            dt.Columns.Add("Status");
+            dt.Columns.AddRange(new DataColumn[] {
+                new DataColumn("Nama Obat"),
+                new DataColumn("Stok"),
+                new DataColumn("Harga"),
+                new DataColumn("Tanggal Expired"),
+                new DataColumn("Status")
+            });
 
-            foreach (var obat in data)
+            foreach (var obat in safeData)
             {
-                dt.Rows.Add(obat.nama, obat.stok, obat.harga.ToString("C"), 
-                    obat.expiredDate.ToString("dd/MM/yyyy"), obat.status.ToString());
+                // Hindari null reference pada setiap item
+                if (obat == null) continue;
+                obat.UpdateStatus();
+                dt.Rows.Add(
+                    obat.Nama ?? "", 
+                    obat.Stok, 
+                    obat.Harga.ToString("C"), 
+                    obat.ExpiredDate.ToString("dd/MM/yyyy"), 
+                    obat.Status
+                );
             }
 
             tblObat.DataSource = dt;
-
-            // Terapkan warna berdasarkan status
-            TerapkanWarnaStatus();
-        }
-
-        private void TerapkanWarnaStatus()
-        {
-            if (tblObat.DataSource is DataTable dt)
-            {
-                for (int i = 0; i < tblObat.Rows.Count; i++)
-                {
-                    string status = tblObat.Rows[i].Cells[4].Value?.ToString();
-                    DataGridViewRow row = tblObat.Rows[i];
-
-                    switch (status)
-                    {
-                        case "Expired":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 200, 200); // Merah muda
-                            break;
-                        case "LowStock":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(255, 255, 200); // Kuning muda
-                            break;
-                        case "Available":
-                            row.DefaultCellStyle.BackColor = Color.FromArgb(200, 255, 200); // Hijau muda
-                            break;
-                    }
-                }
-            }
-        }
-
-        private void TampilkanNotifikasi()
-        {
-            List<Obat> obatExpired = daftarObat.Where(o => o.status == StatusObat.Expired).ToList();
-            List<Obat> obatLowStock = daftarObat.Where(o => o.status == StatusObat.LowStock).ToList();
-
-            // Notifikasi obat expired
-            if (obatExpired.Count > 0)
-            {
-                string pesan = "⚠️ PERINGATAN: Ada obat yang sudah expired:\n\n";
-                foreach (var obat in obatExpired)
-                {
-                    pesan += $"- {obat.nama} (Expired: {obat.expiredDate:dd/MM/yyyy})\n";
-                }
-                MessageBox.Show(pesan, "Obat Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-
-            // Notifikasi obat low stock
-            if (obatLowStock.Count > 0)
-            {
-                string pesan = " PERHATIAN: Ada obat dengan stok rendah:\n\n";
-                foreach (var obat in obatLowStock)
-                {
-                    pesan += $"- {obat.nama} (Stok: {obat.stok})\n";
-                }
-                MessageBox.Show(pesan, "Stok Rendah", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            // Tampilkan statistik
-            TampilkanStatistik();
-        }
-
-        private void TampilkanStatistik()
-        {
-            int jumlahAvailable = daftarObat.Count(o => o.status == StatusObat.Available);
-            int jumlahLowStock = daftarObat.Count(o => o.status == StatusObat.LowStock);
-            int jumlahExpired = daftarObat.Count(o => o.status == StatusObat.Expired);
-
-            this.Text = $"Form1 - Available: {jumlahAvailable} | Low Stock: {jumlahLowStock} | Expired: {jumlahExpired}";
-        }
-
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
+            // [DELEGATION] Form menyerahkan logic status dan warna ke StateMachine.
+            StateMachine.ApplyStatusColors(tblObat, 4);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string inputan = textBox1.Text.ToLower();
-            if(inputan == "")
+            string inputan = textBox1.Text;
+            if (string.IsNullOrWhiteSpace(inputan))
             {
-                MessageBox.Show("Masukan Nama Obat Dulu");
+                TampilkanData(daftarObat);
                 return;
             }
-            List<Obat> hasil = new List<Obat>();
+            
+            // Pencarian case-insensitive dengan IndexOf (lebih aman dibanding ToLower()
+            var hasil = daftarObat
+                .Where(o => o != null && o.Nama != null && o.Nama.IndexOf(inputan, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
 
-            for(int i = 0; i < daftarObat.Count; i++)
-            {
-                if (daftarObat[i].nama.ToLower().Contains(inputan))
-                {
-                    hasil.Add(daftarObat[i]);
-                }
-            }
-            if(hasil.Count > 0)
-            {
+            if (hasil.Count > 0) 
                 TampilkanData(hasil);
-            }
             else
             {
                 MessageBox.Show("Obat tidak ada");
                 TampilkanData(daftarObat);
             }
-        }
-    }
-    public enum StatusObat
-    {
-        Available,
-        LowStock,
-        Expired
-    }
-
-    public class Obat
-    {
-        public string nama { get; set; }
-        public int stok { get; set; }
-        public decimal harga { get; set; }
-        public DateTime expiredDate { get; set; }
-        public StatusObat status { get; set; }
-
-        public Obat(string nama, int stok, decimal harga, DateTime expiredDate)
-        {
-            this.nama = nama;
-            this.stok = stok;
-            this.harga = harga;
-            this.expiredDate = expiredDate;
-            this.status = HitungStatus();
-        }
-
-        public StatusObat HitungStatus()
-        {
-            if (expiredDate < DateTime.Now)
-            {
-                return StatusObat.Expired;
-            }
-            else if (stok < 10)
-            {
-                return StatusObat.LowStock;
-            }
-            else
-            {
-                return StatusObat.Available;
-            }
-        }
-
-        public void UpdateStatus()
-        {
-            status = HitungStatus();
         }
     }
 }

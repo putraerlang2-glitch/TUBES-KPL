@@ -1,147 +1,221 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
+using ObatAPI.Data;
 using ObatAPI.Models;
+using ObatAPI.Services;
 
 namespace ObatAPI.Controllers
 {
-    /// <summary>
-    /// ObatController menyediakan API endpoints untuk manajemen data obat
-    /// Client: TubesKPL (WinForms) akan consume API ini via HttpClient
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ObatController : ControllerBase
     {
-        // In-memory database (untuk demo/testing)
-        // Production: gunakan database seperti SQL Server atau EF Core
-        private static List<Obat> _obatDatabase = new List<Obat>
-        {
-            new Obat 
-            { 
-                Id = 1, 
-                Nama = "Paracetamol", 
-                Kategori = "Tablet",
-                Stok = 100,
-                Harga = 5000,
-                ExpiredDate = DateTime.Now.AddYears(1),
-                Status = "Available"
-            },
-            new Obat 
-            { 
-                Id = 2, 
-                Nama = "Amoxicillin", 
-                Kategori = "Tablet",
-                Stok = 5,
-                Harga = 10000,
-                ExpiredDate = DateTime.Now.AddMonths(6),
-                Status = "LowStock"
-            },
-            new Obat 
-            { 
-                Id = 3, 
-                Nama = "Vitamin C", 
-                Kategori = "Tablet",
-                Stok = 0,
-                Harga = 3000,
-                ExpiredDate = DateTime.Now.AddDays(-1),
-                Status = "Expired"
-            }
-        };
-
+        private readonly ObatDbContext _dbContext;
+        private readonly IObatStatusService _statusService;
         private readonly ILogger<ObatController> _logger;
+        private readonly string _connectionString;
 
-        public ObatController(ILogger<ObatController> logger)
+        public ObatController(ObatDbContext dbContext, IObatStatusService statusService, ILogger<ObatController> logger, IConfiguration configuration)
         {
+            _dbContext = dbContext;
+            _statusService = statusService;
             _logger = logger;
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
-
-        /// <summary>
-        /// GET /api/obat - Ambil semua data obat
-        /// </summary>
-        [HttpGet]
-        public IActionResult GetAll()
+        
+        private void LogActivity(string activityType, string description, int? userId = null, int? obatId = null, int? transaksiId = null, int? batchId = null)
         {
             try
             {
-                _logger.LogInformation("GET /api/obat - Fetch all obat");
-
-                // Update status tiap obat sebelum return
-                foreach (var obat in _obatDatabase)
+                using (var conn = new MySqlConnection(_connectionString))
                 {
-                    UpdateObatStatus(obat);
+                    conn.Open();
+                    
+                    // Cek apakah kolom batch_id ada di tabel activity_history
+                    bool hasBatchId = false;
+                    string checkColumnQuery = @"
+                        SELECT COUNT(*) 
+                        FROM INFORMATION_SCHEMA.COLUMNS 
+                        WHERE TABLE_SCHEMA = DATABASE() 
+                        AND TABLE_NAME = 'activity_history' 
+                        AND COLUMN_NAME = 'batch_id'";
+                    
+                    using (var checkCmd = new MySqlCommand(checkColumnQuery, conn))
+                    {
+                        hasBatchId = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
+                    }
+                    
+                    string query;
+                    if (hasBatchId)
+                    {
+                        query = @"
+                            INSERT INTO activity_history 
+                            (user_id, transaksi_id, obat_id, batch_id, activity_type, activity_description, created_at) 
+                            VALUES 
+                            (@userId, @transaksiId, @obatId, @batchId, @activityType, @description, NOW())";
+                    }
+                    else
+                    {
+                        query = @"
+                            INSERT INTO activity_history 
+                            (user_id, transaksi_id, obat_id, activity_type, activity_description, created_at) 
+                            VALUES 
+                            (@userId, @transaksiId, @obatId, @activityType, @description, NOW())";
+                    }
+                    
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@userId", userId.HasValue ? (object)userId.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@transaksiId", transaksiId.HasValue ? (object)transaksiId.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@obatId", obatId.HasValue ? (object)obatId.Value : DBNull.Value);
+                        
+                        if (hasBatchId)
+                        {
+                            cmd.Parameters.AddWithValue("@batchId", batchId.HasValue ? (object)batchId.Value : DBNull.Value);
+                        }
+                        
+                        cmd.Parameters.AddWithValue("@activityType", activityType);
+                        cmd.Parameters.AddWithValue("@description", string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
-
-                return Ok(_obatDatabase);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetAll");
-                return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+                _logger.LogError(ex, "Gagal mencatat activity log");
             }
         }
 
-        /// <summary>
-        /// GET /api/obat/{id} - Ambil obat berdasarkan ID
-        /// </summary>
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        private IActionResult HandleError(Exception ex, string action)
+        {
+            _logger.LogError(ex, $"Error in {action}");
+            string error = ex is DbUpdateException ? "Database connection failed" : "Internal server error";
+            return StatusCode(500, new { error, details = ex.Message });
+        }
+
+        private IActionResult? ValidateObat(Obat obat, bool isCreate = false)
+        {
+            if (isCreate && (obat == null || string.IsNullOrWhiteSpace(obat.Nama)))
+                return BadRequest(new { error = "Obat data and Nama are required" });
+
+            if (obat.Stok < 0)
+                return BadRequest(new { error = "Invalid stock quantity" });
+
+            if (obat.Harga < 0)
+                return BadRequest(new { error = "Invalid price" });
+
+            return null;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             try
             {
-                _logger.LogInformation($"GET /api/obat/{id}");
+                if (page < 1) page = 1;
+                if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-                var obat = _obatDatabase.FirstOrDefault(o => o.Id == id);
+                int skip = (page - 1) * pageSize;
+                var query = _dbContext.Obat.Where(o => !o.IsDeleted);
+                var totalCount = await query.CountAsync();
+                var obatList = await query.OrderBy(o => o.Nama)
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                foreach (var obat in obatList)
+                    _statusService.EvaluateStatus(obat);
+
+                return Ok(new
+                {
+                    data = obatList,
+                    pagination = new { page, pageSize, totalCount, totalPages = (totalCount + pageSize - 1) / pageSize }
+                });
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex, nameof(GetAll));
+            }
+        }
+
+        [HttpGet("{obatId}")]
+        public async Task<IActionResult> GetById(int obatId)
+        {
+            try
+            {
+                if (obatId <= 0)
+                    return BadRequest(new { error = "Invalid ID" });
+
+                var obat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 
-                UpdateObatStatus(obat);
+                _statusService.EvaluateStatus(obat);
                 return Ok(obat);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetById({id})");
-                return StatusCode(500, new { error = "Internal server error" });
+                return HandleError(ex, nameof(GetById));
             }
         }
 
-        /// <summary>
-        /// POST /api/obat - Tambah obat baru
-        /// </summary>
         [HttpPost]
-        public IActionResult Create([FromBody] Obat obat)
+        public async Task<IActionResult> Create([FromBody] Obat obat)
         {
             try
             {
-                _logger.LogInformation($"POST /api/obat - Create new obat: {obat.Nama}");
+                // Log ModelState errors
+                if (!ModelState.IsValid)
+                {
+                    foreach (var key in ModelState.Keys)
+                    {
+                        var errors = ModelState[key].Errors;
+                        foreach (var error in errors)
+                        {
+                            _logger.LogError($"Validation error for {key}: {error.ErrorMessage}");
+                        }
+                    }
+                    return BadRequest(ModelState);
+                }
+
+                var validationError = ValidateObat(obat, isCreate: true);
+                if (validationError != null) return validationError;
+
+                _statusService.EvaluateStatus(obat);
+                obat.CreatedAt = DateTime.Now;
+                obat.UpdatedAt = DateTime.Now;
+
+                _dbContext.Obat.Add(obat);
+                await _dbContext.SaveChangesAsync();
+                
+                LogActivity("TAMBAH_OBAT", $"Menambahkan obat: {obat.Nama}", obatId: obat.ObatId);
+
+                return CreatedAtAction(nameof(GetById), new { obatId = obat.ObatId }, obat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating obat");
+                return HandleError(ex, nameof(Create));
+            }
+        }
+
+        [HttpPut("{obatId}")]
+        public async Task<IActionResult> Update(int obatId, [FromBody] Obat obat)
+        {
+            try
+            {
+                if (obatId <= 0)
+                    return BadRequest(new { error = "Invalid ID" });
 
                 if (obat == null)
                     return BadRequest(new { error = "Obat data is required" });
 
-                // Generate ID
-                obat.Id = _obatDatabase.Any() ? _obatDatabase.Max(o => o.Id) + 1 : 1;
+                var validationError = ValidateObat(obat);
+                if (validationError != null) return validationError;
 
-                UpdateObatStatus(obat);
-                _obatDatabase.Add(obat);
-
-                return CreatedAtAction(nameof(GetById), new { id = obat.Id }, obat);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in Create");
-                return StatusCode(500, new { error = "Internal server error" });
-            }
-        }
-
-        /// <summary>
-        /// PUT /api/obat/{id} - Update obat
-        /// </summary>
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Obat obat)
-        {
-            try
-            {
-                _logger.LogInformation($"PUT /api/obat/{id} - Update obat");
-
-                var existingObat = _obatDatabase.FirstOrDefault(o => o.Id == id);
+                var existingObat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (existingObat == null)
                     return NotFound(new { error = "Obat not found" });
 
@@ -150,89 +224,115 @@ namespace ObatAPI.Controllers
                 existingObat.Stok = obat.Stok;
                 existingObat.Harga = obat.Harga;
                 existingObat.ExpiredDate = obat.ExpiredDate;
+                existingObat.UpdatedAt = DateTime.Now;
 
-                UpdateObatStatus(existingObat);
+                _statusService.EvaluateStatus(existingObat);
+
+                _dbContext.Obat.Update(existingObat);
+                await _dbContext.SaveChangesAsync();
+                
+                LogActivity("UPDATE_OBAT", $"Mengubah data obat: {existingObat.Nama}", obatId: existingObat.ObatId);
 
                 return Ok(existingObat);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in Update({id})");
-                return StatusCode(500, new { error = "Internal server error" });
+                return HandleError(ex, nameof(Update));
             }
         }
 
-        /// <summary>
-        /// DELETE /api/obat/{id} - Hapus obat
-        /// </summary>
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{obatId}")]
+        public async Task<IActionResult> Delete(int obatId)
         {
             try
             {
-                _logger.LogInformation($"DELETE /api/obat/{id}");
+                if (obatId <= 0)
+                    return BadRequest(new { error = "Invalid ID" });
 
-                var obat = _obatDatabase.FirstOrDefault(o => o.Id == id);
+                var obat = await _dbContext.Obat.FirstOrDefaultAsync(o => o.ObatId == obatId && !o.IsDeleted);
                 if (obat == null)
                     return NotFound(new { error = "Obat not found" });
 
-                _obatDatabase.Remove(obat);
+                obat.IsDeleted = true;
+                obat.DeletedAt = DateTime.Now;
+                await _dbContext.SaveChangesAsync();
+                
+                LogActivity("HAPUS_OBAT", $"Menghapus obat dari tampilan: {obat.Nama}", obatId: obat.ObatId);
+
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in Delete({id})");
-                return StatusCode(500, new { error = "Internal server error" });
+                return HandleError(ex, nameof(Delete));
             }
         }
 
-        /// <summary>
-        /// Helper: Update status obat berdasarkan stok dan tanggal expired
-        /// </summary>
-        private void UpdateObatStatus(Obat obat)
-        {
-            if (obat.ExpiredDate < DateTime.Now)
-            {
-                obat.Status = "Expired";
-            }
-            else if (obat.Stok <= 5)
-            {
-                obat.Status = "LowStock";
-            }
-            else
-            {
-                obat.Status = "Available";
-            }
-        }
-
-        /// <summary>
-        /// GET /api/obat/status/summary - Ambil ringkasan status
-        /// </summary>
         [HttpGet("status/summary")]
-        public IActionResult GetStatusSummary()
+        public async Task<IActionResult> GetStatusSummary()
         {
             try
             {
-                _logger.LogInformation("GET /api/obat/status/summary");
+                var obatList = await _dbContext.Obat.Where(o => !o.IsDeleted).ToListAsync();
 
-                foreach (var obat in _obatDatabase)
-                {
-                    UpdateObatStatus(obat);
-                }
+                foreach (var obat in obatList)
+                    _statusService.EvaluateStatus(obat);
 
-                var summary = new
+                var counterTable = new Dictionary<string, int>
                 {
-                    available = _obatDatabase.Count(o => o.Status == "Available"),
-                    lowStock = _obatDatabase.Count(o => o.Status == "LowStock"),
-                    expired = _obatDatabase.Count(o => o.Status == "Expired"),
-                    total = _obatDatabase.Count
+                    { "Available", 0 },
+                    { "LowStock", 0 },
+                    { "OutOfStock", 0 },
+                    { "Expired", 0 }
                 };
 
-                return Ok(summary);
+                foreach (var obat in obatList)
+                {
+                    string status = obat.Status switch
+                    {
+                        ObatStatus.LowStock => "LowStock",
+                        ObatStatus.OutOfStock => "OutOfStock",
+                        _ => obat.Status.ToString()
+                    };
+                    if (counterTable.ContainsKey(status))
+                        counterTable[status]++;
+                    else
+                        counterTable["Available"]++;
+                }
+
+                return Ok(new
+                {
+                    available = counterTable["Available"],
+                    lowStock = counterTable["LowStock"],
+                    outOfStock = counterTable["OutOfStock"],
+                    expired = counterTable["Expired"],
+                    total = obatList.Count
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetStatusSummary");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        [HttpGet("status/rules")]
+        public IActionResult GetStatusRules()
+        {
+            try
+            {
+                var rules = new object[]
+                {
+                    new { id = 1, statusName = "Expired", priority = 1, conditionType = "ExpiredDate", op = "<", threshold = 0, colorCode = "#DC3545", description = "Obat sudah kadaluarsa" },
+                    new { id = 2, statusName = "OutOfStock", priority = 2, conditionType = "Stok", op = "==", threshold = 0, colorCode = "#6C757D", description = "Stok obat habis" },
+                    new { id = 3, statusName = "LowStock", priority = 3, conditionType = "Stok", op = "<=", threshold = ObatConstants.LOW_STOCK_THRESHOLD, colorCode = "#FFC107", description = "Stok obat menipis" },
+                    new { id = 4, statusName = "Available", priority = 4, conditionType = "None", op = "==", threshold = 0, colorCode = "#28A745", description = "Obat tersedia" }
+                };
+
+                return Ok(new { rules = rules, version = "1.0" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetStatusRules");
                 return StatusCode(500, new { error = "Internal server error" });
             }
         }

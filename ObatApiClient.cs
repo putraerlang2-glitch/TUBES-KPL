@@ -1,509 +1,281 @@
+
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TubesKPL
 {
-    /// <summary>
-    /// ObatApiClient adalah HTTP client untuk komunikasi dengan ObatAPI
-    /// Menggunakan manual JSON parsing (sama seperti JsonDataManager)
-    /// 
-    /// API Server: ObatAPI (.NET 6) - project terpisah
-    /// Base URL: https://localhost:7103 (default HTTPS untuk .NET 6)
-    /// 
-    /// ⚠️ PENTING: 
-    /// - Pastikan ObatAPI sudah running sebelum TubesKPL
-    /// - Jalankan set Multiple Startup Projects
-    /// 
-    /// API Response Format (dari server .NET 6):
-    /// {
-    ///   "id": 1,
-    ///   "nama": "Paracetamol",
-    ///   "kategori": "Tablet",
-    ///   "stok": 100,
-    ///   "harga": 5000,
-    ///   "expiredDate": "2025-01-15T00:00:00",
-    ///   "status": "Available"
-    /// }
-    /// </summary>
-    public class ObatApiClient
+    // [FACADE PATTERN] Class ini membungkus detail HttpClient agar Form tidak perlu tahu detail HTTP.
+    public class ObatApiClient : IDisposable
     {
+        private const string DefaultBaseUrl = "https://localhost:7245";
+        private const int DefaultTimeoutSeconds = 10;
+
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
 
-        // Default port untuk ASP.NET Core 6 development
-        public ObatApiClient(string baseUrl = "https://localhost:7103")
+        public ObatApiClient(string baseUrl = DefaultBaseUrl)
         {
+            if (string.IsNullOrWhiteSpace(baseUrl))
+                throw new ArgumentException("Base URL cannot be empty", nameof(baseUrl));
+
             _baseUrl = baseUrl;
+            var handler = new HttpClientHandler
+            {
+                // ⚠️ HANYA UNTUK DEVELOPMENT! Jangan gunakan di production!
+                // Bypass SSL certificate validation hanya untuk localhost/127.0.0.1
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                    errors == System.Net.Security.SslPolicyErrors.None || _baseUrl.Contains("localhost") || _baseUrl.Contains("127.0.0.1")
+            };
 
-            // Allow self-signed certificate untuk development HTTPS
-            var handler = new HttpClientHandler();
-            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
-
-            _httpClient = new HttpClient(handler);
-            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+            _httpClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(DefaultTimeoutSeconds) };
         }
 
-        /// <summary>
-        /// Ambil semua data obat dari API ObatAPI
-        /// GET /api/obat
-        /// </summary>
         public async Task<List<Obat>> GetAllObatAsync()
         {
             try
             {
-                string url = $"{_baseUrl}/api/obat";
-                System.Console.WriteLine($"[API CLIENT] GET {url}");
-
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    System.Console.WriteLine($"[API CLIENT] Response: {json.Substring(0, Math.Min(100, json.Length))}...");
-
-                    List<Obat> obatList = ParseObatListFromJson(json);
-                    System.Console.WriteLine($"[API CLIENT] Parsed {obatList.Count} items");
-
-                    return obatList ?? new List<Obat>();
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat?pageSize=1000");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<ApiResponse<List<Obat>>>(json);
+                return apiResponse?.Data ?? new List<Obat>();
             }
-            catch (HttpRequestException ex)
-            {
-                throw new Exception($"HTTP Error: {ex.Message}\nPastikan ObatAPI sudah running di {_baseUrl}", ex);
-            }
-            catch (TaskCanceledException ex)
-            {
-                throw new Exception($"Connection Timeout: {ex.Message}\nObatAPI server tidak merespons", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error fetching obat data: {ex.Message}", ex);
-            }
+            catch (TaskCanceledException) { throw new Exception("API connection timeout"); }
+            catch (Exception ex) { throw new Exception($"Failed to fetch medicines: {ex.Message}", ex); }
         }
 
-        /// <summary>
-        /// Ambil obat berdasarkan ID
-        /// GET /api/obat/{id}
-        /// </summary>
-        public async Task<Obat> GetObatByIdAsync(int id)
+        public async Task<Obat> GetObatByIdAsync(int obatId)
         {
-            try
-            {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                HttpResponseMessage response = await _httpClient.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(json);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    throw new Exception($"Obat dengan ID {id} tidak ditemukan");
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error fetching obat: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Tambah obat baru ke API
-        /// POST /api/obat
-        /// </summary>
-        public async Task<Obat> AddObatAsync(Obat obat)
-        {
-            try
-            {
-                string url = $"{_baseUrl}/api/obat";
-                string json = SerializeObat(obat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await _httpClient.PostAsync(url, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseJson = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(responseJson);
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error adding obat: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Update obat di API
-        /// PUT /api/obat/{id}
-        /// </summary>
-        public async Task<Obat> UpdateObatAsync(int id, Obat obat)
-        {
-            try
-            {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                string json = SerializeObat(obat);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await _httpClient.PutAsync(url, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseJson = await response.Content.ReadAsStringAsync();
-                    return ParseObatFromJson(responseJson);
-                }
-                else
-                {
-                    throw new Exception($"API Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error updating obat: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Hapus obat dari API
-        /// DELETE /api/obat/{id}
-        /// </summary>
-        public async Task<bool> DeleteObatAsync(int id)
-        {
-            try
-            {
-                string url = $"{_baseUrl}/api/obat/{id}";
-                HttpResponseMessage response = await _httpClient.DeleteAsync(url);
-
-                return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error deleting obat: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Helper: Parse JSON array ke List<Obat>
-        /// Format: [{"id":1,"nama":"...", ...}, ...]
-        /// </summary>
-        private List<Obat> ParseObatListFromJson(string json)
-        {
-            List<Obat> result = new List<Obat>();
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
 
             try
             {
-                // Remove whitespace
-                json = json.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/{obatId}");
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound) throw new Exception("Medicine not found");
+                response.EnsureSuccessStatusCode();
 
-                // Find array brackets [ ... ]
-                int arrayStart = json.IndexOf("[");
-                int arrayEnd = json.LastIndexOf("]");
-
-                if (arrayStart == -1 || arrayEnd == -1 || arrayStart >= arrayEnd)
-                {
-                    return result;
-                }
-
-                string arrayContent = json.Substring(arrayStart + 1, arrayEnd - arrayStart - 1);
-
-                // Parse setiap object dalam array
-                int currentPos = 0;
-                while (currentPos < arrayContent.Length)
-                {
-                    int objStart = arrayContent.IndexOf("{", currentPos);
-                    if (objStart == -1) break;
-
-                    int objEnd = FindMatchingBracket(arrayContent, objStart);
-                    if (objEnd == -1) break;
-
-                    string objContent = arrayContent.Substring(objStart + 1, objEnd - objStart - 1);
-                    Obat obat = ParseObatObject(objContent);
-
-                    if (obat != null)
-                    {
-                        result.Add(obat);
-                    }
-
-                    currentPos = objEnd + 1;
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[ERROR] ParseObatListFromJson: {ex.Message}");
-                return result;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Parse single JSON object ke Obat
-        /// </summary>
-        private Obat ParseObatFromJson(string json)
-        {
-            try
-            {
-                json = json.Replace("\n", "").Replace("\r", "").Replace("\t", "");
-
-                int objStart = json.IndexOf("{");
-                int objEnd = FindMatchingBracket(json, objStart);
-
-                if (objStart == -1 || objEnd == -1)
-                {
-                    return null;
-                }
-
-                string objContent = json.Substring(objStart + 1, objEnd - objStart - 1);
-                return ParseObatObject(objContent);
-            }
-            catch (Exception ex)
-            {
-                System.Console.WriteLine($"[ERROR] ParseObatFromJson: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Parse object content ke Obat instance
-        /// Menghandle response dari ASP.NET Core API dengan PascalCase properties
-        /// Content format: "id":1,"nama":"Paracetamol","kategori":"Tablet","stok":100,"harga":5000,"expiredDate":"2025-01-15","status":"Available"
-        /// </summary>
-        private Obat ParseObatObject(string objContent)
-        {
-            try
-            {
-                // Parse ID
-                int id = ExtractIntValue(objContent, "\"id\"");
-
-                // Parse nama (required)
-                string nama = ExtractStringValue(objContent, "\"nama\"");
-                if (string.IsNullOrEmpty(nama)) 
-                    return null;
-
-                // Parse stok
-                int stok = ExtractIntValue(objContent, "\"stok\"");
-
-                // Parse harga
-                decimal harga = ExtractDecimalValue(objContent, "\"harga\"");
-
-                // Parse expiredDate - API server return ISO format: "2025-01-15T00:00:00" atau "2025-01-15"
-                DateTime expiredDate = DateTime.Now.AddYears(1); // default 1 tahun dari sekarang
-                string dateStr = ExtractStringValue(objContent, "\"expiredDate\"");
-                if (!string.IsNullOrEmpty(dateStr))
-                {
-                    // Try parse dengan berbagai format ISO 8601
-                    if (DateTime.TryParse(dateStr, out DateTime parsed))
-                    {
-                        expiredDate = parsed;
-                    }
-                    else
-                    {
-                        System.Console.WriteLine($"[WARN] Could not parse date: {dateStr}");
-                    }
-                }
-
-                // Parse kategori (string dari API)
-                string kategori = ExtractStringValue(objContent, "\"kategori\"");
-                if (string.IsNullOrEmpty(kategori))
-                    kategori = "Tablet";
-
-                // Parse status (string dari API)
-                string status = ExtractStringValue(objContent, "\"status\"");
-                if (string.IsNullOrEmpty(status))
-                    status = "Available";
-
-                // Create Obat instance dengan ID
-                Obat obat = new Obat(nama, stok, harga, expiredDate, kategori, id)
-                {
-                    Status = status
-                };
-
-                System.Console.WriteLine($"[PARSE] Obat parsed: {obat}");
+                var json = await response.Content.ReadAsStringAsync();
+                var obat = JsonConvert.DeserializeObject<Obat>(json);
+                if (obat == null) throw new Exception("Invalid response from server");
                 return obat;
             }
+            catch (Exception ex) { throw new Exception($"Failed to fetch medicine: {ex.Message}", ex); }
+        }
+
+        public async Task<Obat> AddObatAsync(Obat obat)
+        {
+            if (obat == null) throw new ArgumentNullException(nameof(obat));
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(obat);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/obat", content);
+                response.EnsureSuccessStatusCode();
+
+                var resultJson = await response.Content.ReadAsStringAsync();
+                var resultObat = JsonConvert.DeserializeObject<Obat>(resultJson);
+                if (resultObat == null) throw new Exception("Invalid response from server");
+                return resultObat;
+            }
+            catch (Exception ex) { throw new Exception($"Failed to add medicine: {ex.Message}", ex); }
+        }
+
+        public async Task<Obat> UpdateObatAsync(int obatId, Obat obat)
+        {
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+            if (obat == null) throw new ArgumentNullException(nameof(obat));
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(obat);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"{_baseUrl}/api/obat/{obatId}", content);
+                response.EnsureSuccessStatusCode();
+
+                var resultJson = await response.Content.ReadAsStringAsync();
+                var resultObat = JsonConvert.DeserializeObject<Obat>(resultJson);
+                if (resultObat == null) throw new Exception("Invalid response from server");
+                return resultObat;
+            }
+            catch (Exception ex) { throw new Exception($"Failed to update medicine: {ex.Message}", ex); }
+        }
+
+        public async Task<bool> DeleteObatAsync(int obatId)
+        {
+            if (obatId <= 0) throw new ArgumentException("ID must be positive", nameof(obatId));
+
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_baseUrl}/api/obat/{obatId}");
+                return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NoContent;
+            }
+            catch (Exception ex) { throw new Exception($"Failed to delete medicine: {ex.Message}", ex); }
+        }
+
+        public async Task<bool> CheckoutTransaksiAsync(TransaksiDTO transaksi)
+        {
+            if (transaksi == null) throw new ArgumentNullException(nameof(transaksi));
+            if (transaksi.DetailList == null) throw new ArgumentException("Transaction detail list is required", nameof(transaksi));
+            if (transaksi.DetailList.Count == 0) throw new ArgumentException("Transaction must have at least one item", nameof(transaksi));
+
+            try
+            {
+                var json = JsonConvert.SerializeObject(transaksi);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/transaksi", content);
+                response.EnsureSuccessStatusCode();
+                return true;
+            }
+            catch (Exception ex) { throw new Exception($"Failed to process transaction: {ex.Message}", ex); }
+        }
+
+        public async Task<string> GetStatusRulesAsync()
+        {
+            try 
+            { 
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/rules"); 
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; 
+            }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"[ERROR] ParseObatObject: {ex.Message}");
+                Console.WriteLine($"[GetStatusRulesAsync] Error: {ex.Message}");
                 return null;
             }
         }
 
-        /// <summary>
-        /// Helper: Serialize Obat ke JSON string untuk POST/PUT
-        /// Format disesuaikan dengan API server (.NET 6)
-        /// </summary>
-        private string SerializeObat(Obat obat)
+        public async Task<string> GetStatusSummaryAsync()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            sb.Append($"\"nama\":\"{EscapeJsonString(obat.Nama)}\",");
-            sb.Append($"\"kategori\":\"{EscapeJsonString(obat.Kategori)}\",");
-            sb.Append($"\"stok\":{obat.Stok},");
-            sb.Append($"\"harga\":{obat.Harga},");
-            sb.Append($"\"expiredDate\":\"{obat.ExpiredDate:yyyy-MM-ddTHH:mm:ss}\"");
-            sb.Append("}");
-            return sb.ToString();
+            try 
+            { 
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/obat/status/summary"); 
+                return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync() : null; 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetStatusSummaryAsync] Error: {ex.Message}");
+                return null;
+            }
         }
 
-        /// <summary>
-        /// Helper: Extract string value dari JSON
-        /// Mendukung baik lowercase maupun PascalCase keys
-        /// </summary>
-        private string ExtractStringValue(string json, string key)
+        public async Task<UserDTO> LoginAsync(string username, string password)
+        {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+
+            try
+            {
+                var request = new { Username = username, Password = password };
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/user/login", content);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    throw new Exception("Invalid username or password");
+                
+                response.EnsureSuccessStatusCode();
+                
+                var resultJson = await response.Content.ReadAsStringAsync();
+                var user = JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                if (user == null) throw new Exception("Invalid response from server");
+                return user;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Login failed: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<UserDTO> RegisterAsync(string username, string password, string nama, string role = null)
+        {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("Username cannot be empty", nameof(username));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
+            if (string.IsNullOrWhiteSpace(nama)) throw new ArgumentException("Nama cannot be empty", nameof(nama));
+
+            try
+            {
+                var request = new { Username = username, Password = password, Nama = nama, Role = role };
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}/api/user/register", content);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                    throw new Exception("Username already exists");
+                
+                response.EnsureSuccessStatusCode();
+                
+                var resultJson = await response.Content.ReadAsStringAsync();
+                var user = JsonConvert.DeserializeObject<UserDTO>(resultJson);
+                if (user == null) throw new Exception("Invalid response from server");
+                return user;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Registration failed: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<List<UserDTO>> GetAllUsersAsync()
         {
             try
             {
-                int keyPos = json.IndexOf(key, StringComparison.OrdinalIgnoreCase);
-                if (keyPos == -1) return string.Empty;
-
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return string.Empty;
-
-                int quoteStart = json.IndexOf("\"", colonPos);
-                if (quoteStart == -1) return string.Empty;
-
-                quoteStart++; // Move past the opening quote
-                int quoteEnd = json.IndexOf("\"", quoteStart);
-
-                if (quoteStart > 0 && quoteEnd > quoteStart)
-                {
-                    string value = json.Substring(quoteStart, quoteEnd - quoteStart);
-                    return UnescapeJsonString(value);
-                }
-
-                return string.Empty;
+                var response = await _httpClient.GetAsync($"{_baseUrl}/api/user");
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<UserDTO>>(json) ?? new List<UserDTO>();
             }
-            catch
+            catch (Exception ex)
             {
-                return string.Empty;
+                throw new Exception($"Failed to fetch users: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Helper: Extract int value dari JSON
-        /// </summary>
-        private int ExtractIntValue(string json, string key)
-        {
-            try
-            {
-                int keyPos = json.IndexOf(key);
-                if (keyPos == -1) return 0;
+        public void Dispose() => _httpClient?.Dispose();
+    }
 
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return 0;
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
+    public class UserDTO
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Nama { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+    }
 
-                int numberStart = colonPos + 1;
-                while (numberStart < json.Length && (json[numberStart] == ' ' || json[numberStart] == ':'))
-                    numberStart++;
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
+    public class TransaksiDTO
+    {
+        public string NoStruk { get; set; } = string.Empty;
+        public DateTime TanggalTransaksi { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal PersentaseDiskon { get; set; }
+        public decimal NominalDiskon { get; set; }
+        public decimal PersentasePajak { get; set; }
+        public decimal NominalPajak { get; set; }
+        public decimal TotalAkhir { get; set; }
+        public decimal UangBayar { get; set; }
+        public decimal UangKembalian { get; set; }
+        public int UserId { get; set; }
+        public List<TransaksiDetailDTO> DetailList { get; set; } = new List<TransaksiDetailDTO>();
+    }
 
-                int numberEnd = numberStart;
-                while (numberEnd < json.Length && char.IsDigit(json[numberEnd]))
-                    numberEnd++;
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
+    public class TransaksiDetailDTO
+    {
+        public int ObatId { get; set; }
+        public int Jumlah { get; set; }
+        public decimal HargaSatuan { get; set; }
+        public decimal Subtotal { get; set; }
+    }
 
-                if (numberEnd > numberStart)
-                {
-                    string numStr = json.Substring(numberStart, numberEnd - numberStart);
-                    if (int.TryParse(numStr, out int result))
-                        return result;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Extract decimal value dari JSON
-        /// </summary>
-        private decimal ExtractDecimalValue(string json, string key)
-        {
-            try
-            {
-                int keyPos = json.IndexOf(key);
-                if (keyPos == -1) return 0;
-
-                int colonPos = json.IndexOf(":", keyPos);
-                if (colonPos == -1) return 0;
-
-                int numberStart = colonPos + 1;
-                while (numberStart < json.Length && (json[numberStart] == ' ' || json[numberStart] == ':'))
-                    numberStart++;
-
-                int numberEnd = numberStart;
-                while (numberEnd < json.Length && (char.IsDigit(json[numberEnd]) || json[numberEnd] == '.'))
-                    numberEnd++;
-
-                if (numberEnd > numberStart)
-                {
-                    string numStr = json.Substring(numberStart, numberEnd - numberStart);
-                    if (decimal.TryParse(numStr, out decimal result))
-                        return result;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Helper: Find matching closing bracket
-        /// </summary>
-        private int FindMatchingBracket(string json, int openPos)
-        {
-            int count = 1;
-            for (int i = openPos + 1; i < json.Length; i++)
-            {
-                if (json[i] == '{') count++;
-                else if (json[i] == '}') count--;
-
-                if (count == 0) return i;
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Helper: Escape string untuk JSON
-        /// </summary>
-        private string EscapeJsonString(string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return str.Replace("\\", "\\\\").Replace("\"", "\\\"");
-        }
-
-        /// <summary>
-        /// Helper: Unescape string dari JSON
-        /// </summary>
-        private string UnescapeJsonString(string str)
-        {
-            if (string.IsNullOrEmpty(str)) return string.Empty;
-            return str.Replace("\\\"", "\"").Replace("\\\\", "\\");
-        }
-
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
-        }
+    // [DTO PATTERN] DTO digunakan untuk membawa data antara WinForms dan API.
+    public class ApiResponse<T>
+    {
+        public T Data { get; set; }
+        public object Pagination { get; set; }
     }
 }

@@ -1,44 +1,37 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using ObatAPI.Helpers;
+
 namespace ObatAPI.Models
 {
-    /// <summary>
-    /// Model Obat untuk API
-    /// Merepresentasikan data obat yang akan dikirim ke client WinForms
-    /// </summary>
     public class Obat
     {
-        /// <summary>
-        /// ID unik obat (opsional, bisa digunakan untuk identifikasi)
-        /// </summary>
-        public int Id { get; set; }
+        public int ObatId { get; set; }
 
-        /// <summary>
-        /// Nama obat
-        /// </summary>
+        [Required(ErrorMessage = "Nama obat harus diisi")]
+        [StringLength(255, MinimumLength = 1, ErrorMessage = "Nama harus antara 1-255 karakter")]
         public string Nama { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Kategori obat (Tablet, Sirup, AntiJamur, Vitamin, dll)
-        /// </summary>
-        public string Kategori { get; set; } = string.Empty;
+        [StringLength(100)]
+        public string Kategori { get; set; } = "Tablet";
 
-        /// <summary>
-        /// Jumlah stok tersedia
-        /// </summary>
+        [Range(0, int.MaxValue, ErrorMessage = "Stok tidak boleh negatif")]
         public int Stok { get; set; }
 
-        /// <summary>
-        /// Harga per unit
-        /// </summary>
+        [Range(0, (double)decimal.MaxValue, ErrorMessage = "Harga tidak boleh negatif")]
         public decimal Harga { get; set; }
 
-        /// <summary>
-        /// Tanggal kadaluarsa obat
-        /// </summary>
+        [Required(ErrorMessage = "Tanggal kadaluarsa harus diisi")]
         public DateTime ExpiredDate { get; set; }
 
-        /// <summary>
-        /// Status obat (Available, LowStock, Expired)
-        /// </summary>
-        public string Status { get; set; } = "Available";
+        [JsonConverter(typeof(ObatStatusJsonConverter))]
+        public ObatStatus Status { get; set; } = ObatStatus.Available;
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        // Soft delete properties
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }
