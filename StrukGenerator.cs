@@ -6,14 +6,38 @@ using System.Windows.Forms;
 
 namespace TubesKPL
 {
-    public static class StrukGenerator
+    public sealed class StrukGenerator
     {
+        // Implementasi Singleton yang thread-safe menggunakan Lazy<T>
+        private static readonly Lazy<StrukGenerator> _instance = 
+            new Lazy<StrukGenerator>(() => new StrukGenerator());
+        
+        public static StrukGenerator Instance => _instance.Value;
+
         private const string SEPARATOR_THICK = "======================================";
         private const string SEPARATOR_THIN = "--------------------------------------";
         private const string HEADER_TITLE = "           APOTEK TUBES KPL           ";
         private const string FOOTER_MESSAGE = "     TERIMA KASIH, SEMOGA LEKAS SEMBUH  ";
 
+        private StrukGenerator()
+        {
+        }
+
+        // --- WRAPPER STATIC ---
+        // Dipertahankan agar form atau class lain yang masih pakai pemanggilan lama
+        // (StrukGenerator.GenerateStruk) tidak langsung error saat transisi.
         public static string BuildStruk(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
+        {
+            return Instance.BuildStrukInstance(keranjang, subtotal, pajak, diskon, totalAkhir, bayar, kembalian);
+        }
+
+        public static void GenerateStruk(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
+        {
+            Instance.GenerateStrukInstance(keranjang, subtotal, pajak, diskon, totalAkhir, bayar, kembalian);
+        }
+
+        // --- INSTANCE METHODS ---
+        public string BuildStrukInstance(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -25,13 +49,13 @@ namespace TubesKPL
             return sb.ToString();
         }
 
-        public static void GenerateStruk(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
+        public void GenerateStrukInstance(List<ItemTransaksi> keranjang, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
         {
-            string struk = BuildStruk(keranjang, subtotal, pajak, diskon, totalAkhir, bayar, kembalian);
+            string struk = BuildStrukInstance(keranjang, subtotal, pajak, diskon, totalAkhir, bayar, kembalian);
             SaveToFile(struk);
         }
-
-        private static void AppendHeader(StringBuilder sb)
+    
+        private void AppendHeader(StringBuilder sb)
         {
             sb.AppendLine(SEPARATOR_THICK);
             sb.AppendLine(HEADER_TITLE);
@@ -40,16 +64,16 @@ namespace TubesKPL
             AppendSeparator(sb, false);
         }
 
-        private static void AppendItems(StringBuilder sb, List<ItemTransaksi> keranjang)
+        private void AppendItems(StringBuilder sb, List<ItemTransaksi> keranjang)
         {
             foreach (var item in keranjang)
             {
-                sb.AppendLine(item.Obat.Nama);
-                sb.AppendLine($"{item.Jumlah} x {FormatCurrency(item.Obat.Harga)} = {FormatCurrency(item.Subtotal())}");
+                sb.AppendLine(item.obat.nama);
+                sb.AppendLine($"{item.jumlah} x {FormatCurrency(item.obat.harga)} = {FormatCurrency(item.Subtotal())}");
             }
         }
 
-        private static void AppendSummary(StringBuilder sb, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
+        private void AppendSummary(StringBuilder sb, decimal subtotal, decimal pajak, decimal diskon, decimal totalAkhir, decimal bayar, decimal kembalian)
         {
             AppendSeparator(sb, false);
             AddRow(sb, "Subtotal", subtotal);
@@ -66,34 +90,34 @@ namespace TubesKPL
             AddRow(sb, "KEMBALIAN", kembalian);
         }
 
-        private static void AppendFooter(StringBuilder sb)
+        private void AppendFooter(StringBuilder sb)
         {
             sb.AppendLine(SEPARATOR_THICK);
             sb.AppendLine(FOOTER_MESSAGE);
             sb.AppendLine(SEPARATOR_THICK);
         }
 
-        private static void AppendSeparator(StringBuilder sb, bool thick)
+        private void AppendSeparator(StringBuilder sb, bool thick)
         {
             sb.AppendLine(thick ? SEPARATOR_THICK : SEPARATOR_THIN);
         }
 
-        private static void AddRow(StringBuilder sb, string label, decimal value)
+        private void AddRow(StringBuilder sb, string label, decimal value)
         {
             sb.AppendLine($"{label.PadRight(17)}: {FormatCurrency(value)}");
         }
 
-        private static void AddRowWithPrefix(StringBuilder sb, string label, decimal value, string prefix)
+        private void AddRowWithPrefix(StringBuilder sb, string label, decimal value, string prefix)
         {
             sb.AppendLine($"{label.PadRight(17)}: {prefix}{FormatCurrency(value)}");
         }
 
-        private static string FormatCurrency(decimal amount)
+        private string FormatCurrency(decimal amount)
         {
             return $"Rp {amount:N0}";
         }
 
-        private static void SaveToFile(string content)
+        private void SaveToFile(string content)
         {
             try
             {
