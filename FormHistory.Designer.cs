@@ -52,19 +52,19 @@ namespace TubesKPL
             this.tblHistory.AllowUserToDeleteRows = false;
             this.tblHistory.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.tblHistory.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.tblHistory.Location = new System.Drawing.Point(12, 80);
+            this.tblHistory.Location = new System.Drawing.Point(12, 12);
             this.tblHistory.Name = "tblHistory";
             this.tblHistory.ReadOnly = true;
             this.tblHistory.RowHeadersWidth = 51;
             this.tblHistory.RowTemplate.Height = 24;
-            this.tblHistory.Size = new System.Drawing.Size(1160, 320);
+            this.tblHistory.Size = new System.Drawing.Size(1160, 380);
             this.tblHistory.TabIndex = 0;
             // 
             // btnRefresh
             // 
-            this.btnRefresh.Location = new System.Drawing.Point(12, 410);
+            this.btnRefresh.Location = new System.Drawing.Point(12, 400);
             this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(120, 30);
+            this.btnRefresh.Size = new System.Drawing.Size(100, 30);
             this.btnRefresh.TabIndex = 1;
             this.btnRefresh.Text = "Refresh";
             this.btnRefresh.UseVisualStyleBackColor = true;
@@ -72,9 +72,9 @@ namespace TubesKPL
             // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(1052, 410);
+            this.btnClose.Location = new System.Drawing.Point(1072, 400);
             this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(120, 30);
+            this.btnClose.Size = new System.Drawing.Size(100, 30);
             this.btnClose.TabIndex = 2;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
@@ -88,6 +88,7 @@ namespace TubesKPL
             this.lblNoStruk.Size = new System.Drawing.Size(55, 17);
             this.lblNoStruk.TabIndex = 3;
             this.lblNoStruk.Text = "No Struk";
+            this.lblNoStruk.Visible = false;
             // 
             // txtNoStruk
             // 
@@ -95,6 +96,7 @@ namespace TubesKPL
             this.txtNoStruk.Name = "txtNoStruk";
             this.txtNoStruk.Size = new System.Drawing.Size(150, 22);
             this.txtNoStruk.TabIndex = 4;
+            this.txtNoStruk.Visible = false;
             // 
             // lblNamaObat
             // 
@@ -104,6 +106,7 @@ namespace TubesKPL
             this.lblNamaObat.Size = new System.Drawing.Size(72, 17);
             this.lblNamaObat.TabIndex = 5;
             this.lblNamaObat.Text = "Nama Obat";
+            this.lblNamaObat.Visible = false;
             // 
             // txtNamaObat
             // 
@@ -111,6 +114,7 @@ namespace TubesKPL
             this.txtNamaObat.Name = "txtNamaObat";
             this.txtNamaObat.Size = new System.Drawing.Size(150, 22);
             this.txtNamaObat.TabIndex = 6;
+            this.txtNamaObat.Visible = false;
             // 
             // lblNamaKasir
             // 
@@ -120,6 +124,7 @@ namespace TubesKPL
             this.lblNamaKasir.Size = new System.Drawing.Size(74, 17);
             this.lblNamaKasir.TabIndex = 7;
             this.lblNamaKasir.Text = "Nama Kasir";
+            this.lblNamaKasir.Visible = false;
             // 
             // txtNamaKasir
             // 
@@ -127,6 +132,7 @@ namespace TubesKPL
             this.txtNamaKasir.Name = "txtNamaKasir";
             this.txtNamaKasir.Size = new System.Drawing.Size(150, 22);
             this.txtNamaKasir.TabIndex = 8;
+            this.txtNamaKasir.Visible = false;
             // 
             // lblTanggalFrom
             // 
@@ -136,6 +142,7 @@ namespace TubesKPL
             this.lblTanggalFrom.Size = new System.Drawing.Size(84, 17);
             this.lblTanggalFrom.TabIndex = 9;
             this.lblTanggalFrom.Text = "Tanggal Dari";
+            this.lblTanggalFrom.Visible = false;
             // 
             // dtpTanggalFrom
             // 
@@ -145,6 +152,7 @@ namespace TubesKPL
             this.dtpTanggalFrom.ShowCheckBox = true;
             this.dtpTanggalFrom.Size = new System.Drawing.Size(200, 22);
             this.dtpTanggalFrom.TabIndex = 10;
+            this.dtpTanggalFrom.Visible = false;
             // 
             // lblTanggalTo
             // 
@@ -154,6 +162,7 @@ namespace TubesKPL
             this.lblTanggalTo.Size = new System.Drawing.Size(62, 17);
             this.lblTanggalTo.TabIndex = 11;
             this.lblTanggalTo.Text = "Sampai Ke";
+            this.lblTanggalTo.Visible = false;
             // 
             // dtpTanggalTo
             // 
@@ -163,6 +172,7 @@ namespace TubesKPL
             this.dtpTanggalTo.ShowCheckBox = true;
             this.dtpTanggalTo.Size = new System.Drawing.Size(200, 22);
             this.dtpTanggalTo.TabIndex = 12;
+            this.dtpTanggalTo.Visible = false;
             // 
             // btnCari
             // 
@@ -173,6 +183,7 @@ namespace TubesKPL
             this.btnCari.Text = "Cari";
             this.btnCari.UseVisualStyleBackColor = true;
             this.btnCari.Click += new System.EventHandler(this.btnCari_Click);
+            this.btnCari.Visible = false;
             // 
             // FormHistory
             // 
@@ -194,7 +205,7 @@ namespace TubesKPL
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.tblHistory);
             this.Name = "FormHistory";
-            this.Text = "Histori Transaksi";
+            this.Text = "Histori";
             ((System.ComponentModel.ISupportInitialize)(this.tblHistory)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
