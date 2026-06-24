@@ -50,47 +50,64 @@ namespace TubesKPL
                 {
                     conn.Open();
                     
-                    // Dapatkan semua kolom dari activity_history
-                    DataTable schema = new DataTable();
-                    string getColumnsQuery = @"
-                        SELECT COLUMN_NAME 
+                    // Cek apakah kolom batch_id ada di activity_history
+                    bool hasBatchId = false;
+                    string checkBatchIdQuery = @"
+                        SELECT COUNT(*) 
                         FROM INFORMATION_SCHEMA.COLUMNS 
                         WHERE TABLE_SCHEMA = DATABASE() 
-                        AND TABLE_NAME = 'activity_history'
-                        ORDER BY ORDINAL_POSITION";
-
-                    List<string> availableColumns = new List<string>();
-                    using (var cmd = new MySqlCommand(getColumnsQuery, conn))
-                    using (var reader = cmd.ExecuteReader())
+                        AND TABLE_NAME = 'activity_history' 
+                        AND COLUMN_NAME = 'batch_id'";
+                    using (var checkCmd = new MySqlCommand(checkBatchIdQuery, conn))
                     {
-                        while (reader.Read())
-                        {
-                            availableColumns.Add(reader.GetString(0));
-                        }
+                        hasBatchId = Convert.ToInt32(checkCmd.ExecuteScalar()) > 0;
                     }
-
-                    // Bangun query SELECT dinamis berdasarkan kolom yang ada, dengan alias yang jelas
-                    string selectColumns = string.Join(", ", availableColumns.Select(col => 
-                    {
-                        // Beri alias yang ramah pengguna
-                        return col switch
-                        {
-                            "activity_id" => "activity_id AS 'ID'",
-                            "created_at" => "created_at AS 'Waktu'",
-                            "activity_type" => "activity_type AS 'Aktivitas'",
-                            "activity_description" => "activity_description AS 'Deskripsi'",
-                            "user_id" => "user_id AS 'User ID'",
-                            "obat_id" => "obat_id AS 'Obat ID'",
-                            "batch_id" => "batch_id AS 'Batch ID'",
-                            "transaksi_id" => "transaksi_id AS 'Transaksi ID'",
-                            _ => col
-                        };
-                    }));
-
-                    string query = $@"
-                        SELECT {selectColumns}
-                        FROM activity_history 
-                        ORDER BY created_at DESC";
+                    
+                    // Query sesuai apakah batch_id ada atau tidak
+                    string query = hasBatchId
+                        ? @"
+                            SELECT 
+                                ah.activity_id AS 'ID History',
+                                ah.created_at AS 'Waktu',
+                                ah.activity_type AS 'Aktivitas',
+                                ah.activity_description AS 'Deskripsi',
+                                ah.user_id AS 'User ID',
+                                u.nama AS 'Nama User',
+                                ah.obat_id AS 'Obat ID',
+                                o.nama AS 'Nama Obat',
+                                o.kategori AS 'Kategori Obat',
+                                ah.batch_id AS 'Batch ID',
+                                b.no_batch AS 'No Batch',
+                                b.expired_date AS 'Tgl Kadaluarsa Batch',
+                                b.jumlah_masuk AS 'Jumlah Masuk Batch',
+                                ah.transaksi_id AS 'Transaksi ID',
+                                t.no_struk AS 'No Struk',
+                                t.total_akhir AS 'Total Transaksi'
+                            FROM activity_history ah
+                            LEFT JOIN user u ON ah.user_id = u.user_id
+                            LEFT JOIN obat o ON ah.obat_id = o.obat_id
+                            LEFT JOIN batch_input b ON ah.batch_id = b.batch_id
+                            LEFT JOIN transaksi t ON ah.transaksi_id = t.transaksi_id
+                            ORDER BY ah.created_at DESC"
+                        : @"
+                            SELECT 
+                                ah.activity_id AS 'ID History',
+                                ah.created_at AS 'Waktu',
+                                ah.activity_type AS 'Aktivitas',
+                                ah.activity_description AS 'Deskripsi',
+                                ah.user_id AS 'User ID',
+                                u.nama AS 'Nama User',
+                                ah.obat_id AS 'Obat ID',
+                                o.nama AS 'Nama Obat',
+                                o.kategori AS 'Kategori Obat',
+                                ah.transaksi_id AS 'Transaksi ID',
+                                t.no_struk AS 'No Struk',
+                                t.total_akhir AS 'Total Transaksi'
+                            FROM activity_history ah
+                            LEFT JOIN user u ON ah.user_id = u.user_id
+                            LEFT JOIN obat o ON ah.obat_id = o.obat_id
+                            LEFT JOIN transaksi t ON ah.transaksi_id = t.transaksi_id
+                            ORDER BY ah.created_at DESC";
 
                     using (var adapter = new MySqlDataAdapter(query, conn))
                     {
